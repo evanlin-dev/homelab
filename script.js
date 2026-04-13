@@ -4,7 +4,8 @@ const NAV_TREE = [
         children: [
             { id: "table-of-contents", title: "Table of Contents" },
             { id: "choosing-your-os-getting-started", title: "Choosing Your OS" },
-            { id: "pangolin-the-better-cloudflare-tunnels-replacement", title: "Pangolin Integration" }
+            { id: "pangolin-the-better-cloudflare-tunnels-replacement", title: "Pangolin Integration" },
+            { id: "family-onboarding", title: "Family Onboarding" }
         ]
     },
     {
@@ -16,7 +17,9 @@ const NAV_TREE = [
             { id: "mac-mini-mac-studio-as-storage-vs-nas", title: "Mac Mini / Studio" },
             { id: "do-you-need-a-network-switch", title: "Managed Switches" },
             { id: "hardware-accessories-worth-getting", title: "Must-Have Accessories" },
-            { id: "hardware-deal-finder-automated-scraping-for-good-finds", title: "Hardware Deal Finder" }
+            { id: "hardware-deal-finder-automated-scraping-for-good-finds", title: "Hardware Deal Finder" },
+            { id: "proxmox-hands-on", title: "Proxmox Hands-On" },
+            { id: "cloud-roi-cost-accounting", title: "Cloud ROI" }
         ]
     },
     {
@@ -25,13 +28,18 @@ const NAV_TREE = [
             { id: "dev-environments-localhost-vs-build-vs-prod", title: "Dev Environments" },
             { id: "important-considerations", title: "Core Gotchas" },
             { id: "lancache-game-download-cache-for-instant-updates", title: "LanCache Setup" },
+            { id: "media-pipeline-arr-stack", title: "Media Pipeline (Arr)" },
             { id: "stage-1-day-one-services", title: "Stage 1 Services" },
             { id: "discord-bot-hub", title: "Personal Bot Hub" },
             { id: "stage-2-after-learning-docker-networking", title: "Stage 2 Services" },
+            { id: "home-assistant-deep-dive", title: "Home Assistant Deep Dive" },
             { id: "stage-3-after-getting-a-nas", title: "Stage 3 Services" },
             { id: "stage-4-after-a-tower-workstation", title: "Stage 4 Services" },
-            { 
-                name: "Stage 5 & Future", 
+            { id: "game-streaming", title: "Game Streaming" },
+            { id: "container-management-ui", title: "Container Management UI" },
+            { id: "monitoring-observability-stack", title: "Monitoring & Observability" },
+            {
+                name: "Stage 5 & Future",
                 children: [
                     { id: "stage-5-far-future-family-spreads-across-multiple-floors", title: "Future Roadmap" },
                     { id: "network-architecture-at-stage-5", title: "VLAN Architecture" }
@@ -66,7 +74,7 @@ const NAV_TREE = [
         name: "Reference & Tools",
         children: [
             { id: "personal-knowledge-base-learning-tracker", title: "Learning Tracker" },
-            { 
+            {
                 name: "Performance & Testing",
                 children: [
                     { id: "wi-fi-heatmap-and-speed-testing", title: "Wi-Fi Heatmaps" },
@@ -76,6 +84,9 @@ const NAV_TREE = [
             },
             { id: "networking-fundamentals-what-you-actually-need-to-know", title: "Networking 101" },
             { id: "port-and-service-reference", title: "Port Reference" },
+            { id: "tls-certificate-management", title: "TLS & Certificates" },
+            { id: "secrets-management", title: "Secrets Management" },
+            { id: "infrastructure-as-code", title: "Infrastructure as Code" },
             { id: "security-hardening-checklist", title: "Security Checklist" },
             { id: "backup-testing-restore-drills", title: "Backup Drills" },
             { id: "troubleshooting-what-to-check-first", title: "Troubleshooting Tree" },

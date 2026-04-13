@@ -197,6 +197,50 @@ const PLAN_DATA = [
                     [
                         "47. Reference Links",
                         "All external links organized by category"
+                    ],
+                    [
+                        "48. Media Pipeline: The *Arr Stack",
+                        "Sonarr, Radarr, Prowlarr, qBittorrent, Bazarr — the full automated pipeline that feeds Jellyfin"
+                    ],
+                    [
+                        "49. TLS & Certificate Management",
+                        "Let's Encrypt, DNS-01 challenge, Caddy auto-certs, mkcert for LAN-only services, cert expiry monitoring"
+                    ],
+                    [
+                        "50. Monitoring & Observability Stack",
+                        "Prometheus + Grafana + Loki + node_exporter + cAdvisor — what to monitor, alert thresholds, free dashboard imports"
+                    ],
+                    [
+                        "51. Infrastructure as Code: Ansible for Homelab",
+                        "Why Ansible, core playbooks, inventory structure, Ansible Vault for secrets — rebuild your stack from scratch in one command"
+                    ],
+                    [
+                        "52. Secrets Management in Docker",
+                        "sops + age, .env patterns, Ansible Vault, what to store in Vaultwarden — avoid credential leaks in git"
+                    ],
+                    [
+                        "53. Family Onboarding: Getting Non-Technical Users on Your Services",
+                        "Best client apps per service, split-horizon DNS, onboarding sessions, the 2AM support call prevention guide"
+                    ],
+                    [
+                        "54. Proxmox: Hands-On Setup Guide",
+                        "VM vs LXC decision table, first 5 actions post-install, PBS backup setup, snapshot workflow"
+                    ],
+                    [
+                        "55. Container Management UI: Portainer vs Dockge",
+                        "Comparison table, why Dockge fits this plan's compose-first approach, when to use each"
+                    ],
+                    [
+                        "56. Game Streaming: Sunshine & Moonlight",
+                        "Setup guide, hardware requirements, client platforms, bitrate tuning, remote play via Tailscale"
+                    ],
+                    [
+                        "57. Home Assistant: Automations Worth Building",
+                        "Integration categories, 12+ automation blueprints, must-have add-ons, avoiding the complexity trap"
+                    ],
+                    [
+                        "58. Cloud ROI: Is Your Homelab Actually Cheaper?",
+                        "Hardware amortization, electricity costs, cloud service comparison table, break-even analysis"
                     ]
                 ]
             }
@@ -281,31 +325,34 @@ const PLAN_DATA = [
             },
             {
                 "type": "p",
-                "content": "For Stage 1, install Ubuntu Server 24.04 LTS. Here's why: Proxmox is overkill when you have one machine and no VMs to migrate. Ubuntu Server is where you'll actually learn Linux — file permissions, systemd, cron, networking, and Docker. That knowledge transfers to Proxmox later. Do not skip this stage."
+                "content": "For this build, we are using **Proxmox VE 8.x**. While Ubuntu is simpler for pure Docker, Proxmox gives you the ability to snapshop your work and run isolated containers (LXC) for high-impact apps like Paperless-ngx."
             },
             {
                 "type": "table",
-                "headers": [],
+                "headers": [
+                    "Task",
+                    "Details"
+                ],
                 "rows": [
                     [
-                        "Install Ubuntu Server 24.04 LTS",
-                        "Download the server ISO from ubuntu.com. Write to USB with balenaEtcher or Ventoy. Boot the Mini PC from USB. Choose 'Ubuntu Server' (not desktop). Enable OpenSSH during install."
+                        "Proxmox Installation",
+                        "Flash Proxmox VE ISO to USB via balenaEtcher. Boot G6 Mini (F9 for boot menu). Use Graphical Installer. Set static IP (e.g., 192.168.100.2/24)."
                     ],
                     [
-                        "First commands after install",
-                        "sudo apt update && sudo apt upgrade -y → then install Docker via the official Docker Engine install script (not apt's outdated version)."
+                        "Post-Install Cleanup",
+                        "Log in to Web UI (https://[IP]:8006). Open Shell. Run the 'Post-Install' script to fix repositories and remove the subscription nag."
                     ],
                     [
-                        "Get Docker Compose",
-                        "sudo apt install docker-compose-plugin — gives you the docker compose (v2) command. Never use pip install docker-compose."
+                        "Post-Install Script",
+                        "<code>bash -c \"$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/tools/pve/post-pve-install.sh)\"</code>. Answers: Disable Enterprise (y), Add No-Sub (y), Disable Nag (y), Disable HA (y), Disable Corosync (y), Update (y), Reboot (y). Select 'No' (n) for Beta/Test repos."
                     ],
                     [
-                        "Essential reading",
-                        "DigitalOcean's Ubuntu tutorials are the best free resource for Linux fundamentals. Start with 'How To Use SSH Keys' and 'How To Use Systemd'."
+                        "Network Verification",
+                        "Using Gateway (e.g., 192.168.100.1) for DNS is correct. If script downloads fail, temporarily add a public DNS like 1.1.1.1 in System -> DNS."
                     ],
                     [
-                        "When to move to Proxmox",
-                        "When you buy the tower workstation at Stage 4. At that point, install Proxmox VE on the tower and keep Ubuntu on the Mini PC as the Proxmox Backup Server target."
+                        "Router DHCP Reservation",
+                        "Log into the router (e.g., 192.168.50.1). Go to LAN -> DHCP Server. Enable 'Manual Assignment' and bind the server's MAC address to the static IP address (e.g., 192.168.50.188). Hit '+' and 'Apply' to finalize. This ensures the router never accidentally assigns your server's IP to another device."
                     ]
                 ]
             },
@@ -2543,6 +2590,28 @@ const PLAN_DATA = [
                         "Telegram / Discord",
                         "Private server or direct message only"
                     ]
+                ]
+            },
+            {
+                "type": "h3",
+                "content": "Advanced & Niche Bot Ideas"
+            },
+            {
+                "type": "table",
+                "headers": ["Idea", "Trigger / Command", "Recommended Platform", "Implementation Notes"],
+                "rows": [
+                    ["Travel Mode Activator", "/travel [destination] [days] — lowers thermostat, enables motion alerts, sets VPN kill-switch, pauses non-critical crons, notifies family you're away", "Telegram (private)", "n8n workflow or Hermes skill that hits HA API + Tailscale + cron management. One command activates a full departure checklist."],
+                    ["Laundry / Appliance Done Detector", "Smart plug monitors washer/dryer wattage. When draw drops from ~1200W to standby (<15W), bot sends 'Dryer is done'", "Telegram (family group)", "HA automation with energy sensor + ntfy → Telegram. No command — pure push. Also works for dishwasher, rice cooker, oven."],
+                    ["Portfolio Value Snapshot", "/portfolio or daily 9am push: fetches stock/ETF prices from Yahoo Finance API, shows current value + day change + week change", "Telegram (private)", "Hermes task or Python script with yfinance library. Store holdings in a CSV on the server — never expose to shared bots."],
+                    ["Smart Home Scene Shortcuts", "/goodnight — locks door, dims all lights to 0%, lowers thermostat. /morning — raises blinds, starts coffee. /movie — dims to 15%, mutes phone notifications", "Telegram (family group) or Discord", "HA script for each scene, triggered via webhook from the bot. Scenes are the most-used bot command in practice."],
+                    ["AdGuard Device Override", "/unblock [device-name] [30m|1h|2h] — temporarily lifts DNS blocking for a specific device. Family member texts to request, only you can approve.", "Telegram (private)", "AdGuard Home API + n8n with Telegram reply button for approval. Useful for kids' screen time exceptions without permanent rule changes."],
+                    ["Package Tracking Relay", "Forward shipping confirmation emails to a special address → bot parses carrier + tracking number → sends status updates as package moves", "Telegram (private)", "n8n email trigger → scrape carrier API (UPS/FedEx/USPS have free APIs) → push updates. No more manually checking 5 tracking pages."],
+                    ["Weather-Based Umbrella Alert", "Morning check: if >30% rain probability during your commute window (7–9am), bot sends alert before you leave. Checks NWS API for your zip code.", "Telegram (private)", "Hermes cron at 6:40am or n8n → NWS points API (free, no key required) → conditional ntfy push. Combine with MTA disruption check."],
+                    ["Interactive Page Change Monitor", "/watch [url] [keyword] — bot polls the URL every 15 minutes and alerts when the keyword appears (visa appointment slot, concert tickets, job posting)", "Telegram (private)", "Changedetection.io has a Telegram integration built-in. Or Hermes polling task. Essential for time-sensitive availability windows."],
+                    ["Anki Deck Bot", "Daily push of 5–10 due flashcards from your Anki deck. Reply to answer. Bot tracks streak and sends weekly retention summary.", "Telegram (private)", "AnkiConnect API (local) → Hermes or custom Python bot. Better than opening Anki because the friction is near-zero — you answer in chat."],
+                    ["Health / Symptom Log", "/log [symptom] [severity] → timestamped entry in SilverBullet notes. /health summary → last 30 days frequency chart. Useful for doctor visits.", "Telegram (private)", "Hermes writes to a dedicated health.md note via API. Weekly Hermes summary on Sunday. Sensitive — private bot only."],
+                    ["Cross-Device Clipboard Relay", "/clip [text] → saved to SilverBullet. /paste → retrieves last clip. Instant text transfer between phone, desktop, and any device on Tailscale without any sync app.", "Telegram (private)", "Two-command bot backed by SilverBullet API. Simpler than any clipboard sync tool and works across all OS."],
+                    ["Earthquake / Emergency Push", "USGS earthquake API + FEMA IPAWS feed → immediate push for events above M3.0 near your location or any national emergency alert", "Telegram (private)", "n8n polling USGS earthquake GeoJSON feed every 5 minutes. Free API. Add NWS alerts feed for severe weather."]
                 ]
             },
             {
@@ -9363,6 +9432,764 @@ const PLAN_DATA = [
                 "title": "THE HONEST SUMMARY:",
                 "content": "Self-hosting is best for: storage, media, notes, productivity tools, home automation, and any internal tool where you are the user. Self-hosting is wrong for: anything customer-facing requiring real uptime SLAs, email infrastructure, payment processing, and anything where a 4-hour outage affects people who did not choose to depend on your homelab.",
                 "level": "note"
+            }
+        ]
+    },
+    {
+        "id": "media-pipeline-arr-stack",
+        "title": "Media Pipeline: The *Arr Stack",
+        "elements": [
+            {
+                "type": "p",
+                "content": "Jellyfin is Stage 1 — but an empty library is just a pretty UI. The *arr stack is the automated acquisition pipeline that feeds it: someone requests a show, the stack finds it, downloads it, renames it, and notifies Jellyfin — all without you touching anything. Set it up once and it runs itself."
+            },
+            {
+                "type": "h2",
+                "content": "Pipeline Flow"
+            },
+            {
+                "type": "p",
+                "content": "<strong>Jellyseerr</strong> (request UI) → <strong>Sonarr</strong> / <strong>Radarr</strong> (TV / movie managers) → <strong>Prowlarr</strong> (indexer aggregator) → <strong>qBittorrent</strong> (download client) → <strong>Bazarr</strong> (subtitles) → <strong>Jellyfin</strong> (playback). Each tool has one job and talks to the next via API."
+            },
+            {
+                "type": "table",
+                "headers": ["Service", "Port", "Role", "Key Setting"],
+                "rows": [
+                    ["<a href='https://github.com/Fallenbagel/jellyseerr' target='_blank'>Jellyseerr</a>", "5055", "Family-facing request interface — looks like a streaming app. Users search and request; the rest is invisible to them.", "Connect Sonarr + Radarr + Jellyfin accounts. Set per-user auto-approval so your own requests don't need manual approval."],
+                    ["<a href='https://sonarr.tv/' target='_blank'>Sonarr</a>", "8989", "TV show manager — monitors RSS feeds, grabs episodes matching your quality rules, renames files to Jellyfin-friendly structure.", "Quality Profile: 1080p WEB preferred. Root Folder: /data/media/tv. Connect to Prowlarr and qBittorrent."],
+                    ["<a href='https://radarr.video/' target='_blank'>Radarr</a>", "7878", "Identical to Sonarr but for movies. Watches for new releases and physical media dates matching your quality profile.", "Quality Profile, Minimum Availability: Released. Root Folder: /data/media/movies."],
+                    ["<a href='https://github.com/Prowlarr/Prowlarr' target='_blank'>Prowlarr</a>", "9696", "Indexer aggregator — manages all tracker credentials in one place, syncs them to Sonarr and Radarr automatically.", "Add indexers once here. Prowlarr pushes them to all arrs automatically — no per-app indexer configuration."],
+                    ["<a href='https://www.qbittorrent.org/' target='_blank'>qBittorrent</a>", "8080", "Download client — receives tasks from Sonarr/Radarr, seeds to ratio, then moves files to the final organized location.", "Set download categories: 'tv' → /data/downloads/complete/tv, 'movies' → /data/downloads/complete/movies. Enable WebUI."],
+                    ["<a href='https://www.bazarr.media/' target='_blank'>Bazarr</a>", "6767", "Subtitle automation — auto-downloads subtitles for every file using OpenSubtitles, Subscene, or Addic7ed.", "Enable English + Chinese (Simplified). Set minimum score to 90. Connect via Sonarr/Radarr API keys."]
+                ]
+            },
+            {
+                "type": "h2",
+                "content": "Directory Structure — Get This Right First"
+            },
+            {
+                "type": "p",
+                "content": "All containers must share the same root volume. The most common mistake: giving qBittorrent and Sonarr different mount points, which forces a slow file copy instead of an instant hardlink. Use a single <code>/data</code> volume mounted identically in all containers."
+            },
+            {
+                "type": "table",
+                "headers": ["Path", "Used By", "Purpose"],
+                "rows": [
+                    ["/data/media/tv", "Sonarr, Jellyfin", "Final organized TV episodes — Jellyfin points here"],
+                    ["/data/media/movies", "Radarr, Jellyfin", "Final organized movies — Jellyfin points here"],
+                    ["/data/downloads/incomplete", "qBittorrent only", "Active in-progress downloads — arrs never touch this folder"],
+                    ["/data/downloads/complete/tv", "qBittorrent → Sonarr", "Completed TV downloads — Sonarr hardlinks to /media/tv"],
+                    ["/data/downloads/complete/movies", "qBittorrent → Radarr", "Completed movie downloads — Radarr hardlinks to /media/movies"]
+                ]
+            },
+            {
+                "type": "warning",
+                "title": "Hardlinks vs. Copies",
+                "content": "When downloads and media are on the same filesystem, the arr stack uses <strong>hardlinks</strong> — a file appears in both /downloads and /media using zero extra disk space, so you keep seeding while Jellyfin reads the organized copy. Cross-filesystem or split Docker volumes break this and double your disk usage. Keep everything under one <code>/data</code> volume."
+            },
+            {
+                "type": "h2",
+                "content": "Jellyseerr: The Family Interface"
+            },
+            {
+                "type": "p",
+                "content": "Jellyseerr is what your family actually uses — it looks like a movie app (TMDB posters, ratings, trailers). They search, hit Request, and it flows through Sonarr/Radarr automatically. No one needs to know qBittorrent exists. Configure auto-approval for trusted users so they don't have to wait for you to approve their requests."
+            },
+            {
+                "type": "note",
+                "title": "Public vs Private Indexers",
+                "content": "Public indexers (configured via Prowlarr) are free and sufficient for 95% of content. Private trackers have better retention and quality but require invitation or audition. For a family homelab, start with public indexers — add private trackers later if specific content is unavailable."
+            }
+        ]
+    },
+    {
+        "id": "tls-certificate-management",
+        "title": "TLS & Certificate Management",
+        "elements": [
+            {
+                "type": "p",
+                "content": "The moment you put any service behind a domain — even internal-only — you need TLS. Without it: browser security warnings, HTTP-only API calls in plain text, and some apps that refuse to work at all. There are three distinct scenarios, each with the right tool."
+            },
+            {
+                "type": "h2",
+                "content": "The Three Scenarios"
+            },
+            {
+                "type": "table",
+                "headers": ["Scenario", "Approach", "Tool", "Requires Public Domain?"],
+                "rows": [
+                    ["Public-facing service, port 80/443 open", "Let's Encrypt HTTP-01 — simplest, automatic", "Caddy (zero config) or certbot", "Yes — domain must resolve publicly"],
+                    ["LAN-only service using a real domain (e.g. proxmox.home.yourdomain.com)", "Let's Encrypt DNS-01 — proves domain ownership via DNS record, no port 80 needed", "acme.sh + Cloudflare API, or Caddy with DNS plugin", "Yes for domain, no for inbound ports — works behind Pangolin with nothing open"],
+                    ["Internal service with IP or .local hostname only", "Self-signed CA via mkcert — create your own root CA, install once per device", "mkcert (one command)", "No — fully offline"]
+                ]
+            },
+            {
+                "type": "h2",
+                "content": "Recommended Setup: Caddy with DNS-01"
+            },
+            {
+                "type": "p",
+                "content": "If you have a real domain (which Pangolin requires), the cleanest setup is Caddy as your reverse proxy with DNS-01 challenge via Cloudflare. You get valid Let's Encrypt certs for every subdomain — including LAN-only ones — without opening any inbound ports. Caddy handles renewal completely automatically. The Cloudflare API token only needs <code>Zone:DNS:Edit</code> permission."
+            },
+            {
+                "type": "table",
+                "headers": ["Service", "Recommended Subdomain", "Access Scope", "Notes"],
+                "rows": [
+                    ["Proxmox VE", "proxmox.home.yourdomain.com", "LAN only / Tailscale", "Never expose Proxmox web UI to the internet. Internal domain with DNS-01 cert gives you HTTPS with no public exposure."],
+                    ["Jellyfin", "jellyfin.yourdomain.com", "Public or LAN", "External access is safe with proper auth. Enable HTTP Strict Transport Security."],
+                    ["AdGuard Home", "dns.home.yourdomain.com", "LAN only", "DNS admin panel has no business being publicly reachable."],
+                    ["Grafana", "grafana.home.yourdomain.com", "LAN only", "Monitoring dashboards are internal. Add Authelia in front if you want SSO."],
+                    ["Vaultwarden", "vault.yourdomain.com", "Public", "Public access is useful for mobile. Ensure Argon2id KDF is enabled in admin settings."],
+                    ["Home Assistant", "ha.yourdomain.com", "Public or LAN", "External access needed for mobile app to work away from home. Restrict with long-lived tokens."]
+                ]
+            },
+            {
+                "type": "h2",
+                "content": "mkcert for Fully Internal Services"
+            },
+            {
+                "type": "p",
+                "content": "For services only accessible by IP or .local hostname, <code>mkcert</code> is the cleanest solution. Run <code>mkcert -install</code> once on each device to add your local CA to the system trust store. Then <code>mkcert 192.168.1.100 proxmox.local</code> generates a valid cert for that address — no more browser warnings on any device where you've installed the CA."
+            },
+            {
+                "type": "h2",
+                "content": "Certificate Expiry Monitoring"
+            },
+            {
+                "type": "p",
+                "content": "Add a cron check for all manually-managed certs. Let's Encrypt certs auto-renew at 60 days. For mkcert or any custom cert: <code>openssl x509 -enddate -noout -in cert.pem</code> — pipe this to a script that fires a Telegram alert 30 days before expiry. Caddy-managed certs need no monitoring — Caddy handles it silently."
+            },
+            {
+                "type": "warning",
+                "title": "Never Expose Proxmox Directly",
+                "content": "Proxmox web UI (port 8006) and API should never be reachable from the internet. Use Tailscale for remote access to internal management tools. A DNS-01 cert lets you get valid HTTPS on <code>proxmox.home.yourdomain.com</code> without any inbound port forwarding."
+            }
+        ]
+    },
+    {
+        "id": "monitoring-observability-stack",
+        "title": "Monitoring & Observability Stack",
+        "elements": [
+            {
+                "type": "p",
+                "content": "Running 20+ containers without monitoring is flying blind. The standard homelab observability stack is Prometheus (metrics) + Grafana (dashboards) + Loki (logs) + Alloy (log shipping) + node_exporter (host metrics) + cAdvisor (container metrics). It sounds like a lot — deploy them together via compose and you get full visibility in an afternoon."
+            },
+            {
+                "type": "h2",
+                "content": "Stack Components"
+            },
+            {
+                "type": "table",
+                "headers": ["Component", "Port", "Role", "Deploy Order"],
+                "rows": [
+                    ["<a href='https://prometheus.io/' target='_blank'>Prometheus</a>", "9090", "Time-series metrics database — scrapes exporters on a schedule, stores metrics, evaluates alert rules", "1 — core, everything feeds into it"],
+                    ["<a href='https://grafana.com/' target='_blank'>Grafana</a>", "3000", "Dashboard and alerting UI — connects to Prometheus and Loki as data sources, renders dashboards", "2 — after Prometheus is running"],
+                    ["<a href='https://github.com/prometheus/node_exporter' target='_blank'>node_exporter</a>", "9100", "Host metrics — CPU, RAM, disk I/O, network, temperature. One instance per physical machine.", "1 — run alongside Prometheus"],
+                    ["<a href='https://github.com/google/cadvisor' target='_blank'>cAdvisor</a>", "8080", "Container metrics — per-container CPU, memory, network. Prometheus scrapes this automatically.", "1 — run alongside Prometheus"],
+                    ["<a href='https://grafana.com/oss/loki/' target='_blank'>Loki</a>", "3100", "Log aggregation — stores compressed logs from all containers, queryable via Grafana LogQL", "2 — after Grafana"],
+                    ["<a href='https://grafana.com/docs/alloy/latest/' target='_blank'>Grafana Alloy</a>", "varies", "Log shipper — reads Docker container logs and forwards them to Loki. Replaces the older Promtail.", "3 — after Loki"],
+                    ["<a href='https://prometheus.io/docs/alerting/latest/alertmanager/' target='_blank'>Alertmanager</a>", "9093", "Alert routing — receives firing alerts from Prometheus, routes to Telegram/Discord/email based on rules", "Optional — add when alert fatigue becomes a concern"]
+                ]
+            },
+            {
+                "type": "h2",
+                "content": "What to Actually Monitor"
+            },
+            {
+                "type": "p",
+                "content": "Don't alert on everything — alert on things that require action within a reasonable window. The goal is signal, not noise. Start with 5–6 alerts, not 30."
+            },
+            {
+                "type": "table",
+                "headers": ["Metric", "Alert Threshold", "Why This Threshold", "Action Required"],
+                "rows": [
+                    ["Host CPU (15-min avg)", "> 85% for 10 minutes", "Sustained load indicates a runaway process or underpowered host, not just a spike", "Check top/htop — likely Ollama, Frigate, or a runaway container"],
+                    ["Host RAM", "> 90% for 5 minutes", "At 95%+ Linux starts OOM-killing containers unpredictably", "Identify the consuming container — restart or add swap"],
+                    ["Disk usage (any mount)", "> 80%", "ZFS degrades significantly above 80% utilization — fragmentation and performance cliff", "Delete old downloads or expand storage before hitting 90%"],
+                    ["Container restarts", "> 3 in 1 hour", "Crash loop — container is failing repeatedly and systemd/compose is restarting it", "Check container logs — usually a config error or port conflict"],
+                    ["Host temperature (NVMe/CPU)", "> 85°C", "Above 90°C triggers thermal throttling and reduces lifespan", "Check case airflow and fan curves in BIOS"],
+                    ["Backup job", "No successful run in 25 hours", "Missing daily backup window — catch before two days are lost", "Check rclone logs and destination storage"],
+                    ["ZFS pool health", "Degraded / Faulted state", "Any degraded pool is one more drive failure from data loss", "Replace failed drive immediately — do not delay"]
+                ]
+            },
+            {
+                "type": "h2",
+                "content": "Grafana Dashboard Imports (Free)"
+            },
+            {
+                "type": "p",
+                "content": "Grafana has a dashboard marketplace at grafana.com/grafana/dashboards. Import these by ID — no manual panel creation needed:"
+            },
+            {
+                "type": "table",
+                "headers": ["Dashboard ID", "Name", "What It Shows"],
+                "rows": [
+                    ["1860", "Node Exporter Full", "Complete host metrics — CPU, RAM, disk, network, temp in one view"],
+                    ["893", "Docker and system monitoring", "Per-container resource usage from cAdvisor"],
+                    ["13639", "Logs / Loki", "Log browser — search all container logs in one interface"],
+                    ["11462", "Proxmox", "Proxmox VE metrics via pve_exporter — node, VM, and storage stats"],
+                    ["17346", "ZFS", "Pool health, I/O, ARC hit rate from ZFS-specific exporter"]
+                ]
+            },
+            {
+                "type": "note",
+                "title": "Start Small",
+                "content": "Deploy node_exporter + Prometheus + Grafana first. Get comfortable with dashboards before adding Loki and Alertmanager. Attempting the full observability stack in one shot is overwhelming to configure and tune."
+            }
+        ]
+    },
+    {
+        "id": "infrastructure-as-code",
+        "title": "Infrastructure as Code: Ansible for Homelab",
+        "elements": [
+            {
+                "type": "p",
+                "content": "The gap between a homelab you could rebuild in 2 hours and one that takes 2 days is Ansible. Every manual step you take to set up a server — installing Docker, copying compose files, configuring SSH, setting timezone — can be a playbook. When your drive fails or you add new hardware, you run one command and you're back to exactly where you were."
+            },
+            {
+                "type": "h2",
+                "content": "Why Ansible Over Shell Scripts"
+            },
+            {
+                "type": "table",
+                "headers": ["Property", "Shell Scripts", "Ansible"],
+                "rows": [
+                    ["Idempotent (safe to re-run)", "❌ Depends on careful coding", "✅ Built-in — running twice is always safe"],
+                    ["Agentless", "✅ SSH only", "✅ SSH only — nothing to install on target hosts"],
+                    ["Cross-host coordination", "❌ Complex", "✅ Inventory + groups — run across all hosts in one command"],
+                    ["Community modules", "❌ Write everything yourself", "✅ Thousands of modules: apt, docker_compose, ufw, certbot"],
+                    ["Secret handling", "❌ Env vars or manual", "✅ Ansible Vault — encrypt vars at rest, safe to commit to git"],
+                    ["Learning curve", "None if you know bash", "Low — YAML tasks, one week to productive"]
+                ]
+            },
+            {
+                "type": "h2",
+                "content": "Core Playbooks to Write"
+            },
+            {
+                "type": "table",
+                "headers": ["Playbook", "What It Does", "Run When"],
+                "rows": [
+                    ["base-server.yml", "Sets timezone, hostname, unattended-upgrades, SSH hardening (key-only auth, disable root login), fail2ban, UFW baseline rules", "Immediately after any fresh OS install"],
+                    ["install-docker.yml", "Installs Docker CE from official repo, adds user to docker group, installs docker-compose plugin, pulls compose files from Gitea/Forgejo", "After base-server, before deploying any services"],
+                    ["deploy-services.yml", "Runs docker compose up -d for each service group in order. Reads .env values from Ansible Vault. Verifies containers are healthy.", "After docker install, or after any compose file change"],
+                    ["cert-renew.yml", "Runs acme.sh renewal check, reloads Caddy if certs changed, sends Telegram confirmation via ntfy", "Weekly cron — runs from your workstation or a cron on the mini PC"],
+                    ["backup-verify.yml", "SSH to each host, checks rclone ls on Backblaze B2 destination, verifies last modification timestamp, alerts if stale", "Daily — confirms backups exist without running a full backup"],
+                    ["proxmox-snapshot.yml", "Takes a Proxmox snapshot of each VM before any risky change. Tags snapshot with date + reason.", "Before major updates or config changes on the tower"]
+                ]
+            },
+            {
+                "type": "h2",
+                "content": "Inventory Structure"
+            },
+            {
+                "type": "p",
+                "content": "Your Ansible inventory defines what hosts exist and what groups they belong to. Keep it in the same git repo as your compose files:"
+            },
+            {
+                "type": "table",
+                "headers": ["Group", "Hosts", "Playbooks Applied"],
+                "rows": [
+                    ["[mini]", "192.168.1.10 (HP EliteDesk)", "base-server, install-docker, deploy-services (Stage 1–2 stack)"],
+                    ["[nas]", "192.168.1.20 (TrueNAS / Synology)", "base-server only — NAS OS manages its own services"],
+                    ["[tower]", "192.168.1.30 (Tower Proxmox host)", "base-server, proxmox-snapshot, deploy-services (Stage 4 stack)"],
+                    ["[all:vars]", "ansible_user=yourusername, ansible_ssh_private_key_file=~/.ssh/homelab_key", "Applies to every host"]
+                ]
+            },
+            {
+                "type": "h2",
+                "content": "Ansible Vault for Secrets"
+            },
+            {
+                "type": "p",
+                "content": "Ansible Vault encrypts any variable file at rest — you can commit <code>vars/secrets.yml</code> to git safely. Run <code>ansible-vault encrypt vars/secrets.yml</code> and provide a password (stored in Vaultwarden). Decrypt at runtime with <code>--ask-vault-pass</code> or a password file. This solves the secret-in-dotenv problem without any additional tooling."
+            },
+            {
+                "type": "note",
+                "title": "Start with One Playbook",
+                "content": "Write base-server.yml first and run it on your next fresh OS install. You'll immediately see the value. Don't try to automate everything on day one — add playbooks each time you catch yourself doing the same manual step for the second time."
+            }
+        ]
+    },
+    {
+        "id": "secrets-management",
+        "title": "Secrets Management in Docker",
+        "elements": [
+            {
+                "type": "p",
+                "content": "Every Docker Compose stack has a <code>.env</code> file with database passwords, API keys, and bot tokens. The default developer habit — committing .env to git — is a real risk even for private repos. The homelab version: .env on disk in plaintext, accessible to any container that mounts the host directory, visible in <code>docker inspect</code> output, and one accidental public-repo push from being fully exposed."
+            },
+            {
+                "type": "h2",
+                "content": "The Threat Model (Homelab Reality)"
+            },
+            {
+                "type": "p",
+                "content": "You're not a Fortune 500 company. Your real risks are: (1) accidentally pushing .env to a public repo, (2) a compromised container reading sibling container env vars via docker inspect, (3) losing all credentials if the server dies. Design for these, not enterprise key rotation."
+            },
+            {
+                "type": "h2",
+                "content": "Approach Comparison"
+            },
+            {
+                "type": "table",
+                "headers": ["Approach", "How It Works", "Git-Safe?", "Complexity", "Best For"],
+                "rows": [
+                    [".env in .gitignore (baseline)", "Plain .env, excluded from git. Backed up to Vaultwarden manually.", "✅ if .gitignore is correct and enforced", "None", "Single-person homelab, all repos private, no collaboration"],
+                    ["sops + age", "Encrypt .env with age public key. Encrypted file is safe to commit. Decrypt in deploy script.", "✅ Commit encrypted file", "Low — one CLI install", "Any setup where configs live in git; best balance of safety and simplicity"],
+                    ["Ansible Vault", "Encrypt vars in Ansible inventory. Decrypted at playbook run time only.", "✅ Vault file safe in git", "Low if already using Ansible", "When using Ansible for deployment — no extra tooling"],
+                    ["Docker Secrets (Swarm)", "Secrets stored in Swarm encrypted store, mounted as files at /run/secrets/. Env vars never used.", "N/A — managed by Swarm", "High — requires Docker Swarm mode", "Production multi-node setups — overkill for single-server homelab"],
+                    ["direnv + .envrc", "Auto-loads env vars when you cd into a directory. .envrc lists variable names only; actual values in a separate encrypted file.", "✅ .envrc with names only", "Low", "Development workflows and CLI tool environments"]
+                ]
+            },
+            {
+                "type": "h2",
+                "content": "Recommended: sops + age"
+            },
+            {
+                "type": "p",
+                "content": "<code>sops</code> encrypts YAML/JSON/ENV files using <code>age</code> public-key encryption. Your public key is safe to commit anywhere. Decryption requires your private key (stored in Vaultwarden). Workflow: <code>sops --encrypt .env > .env.enc</code> → commit <code>.env.enc</code> → at deploy time: <code>sops --decrypt .env.enc > .env && docker compose up -d && rm .env</code>."
+            },
+            {
+                "type": "h2",
+                "content": "What to Store in Vaultwarden (Not Docker)"
+            },
+            {
+                "type": "table",
+                "headers": ["Credential Type", "Storage Method", "Notes"],
+                "rows": [
+                    ["Telegram bot tokens", "Vaultwarden + injected into .env at deploy time", "Tokens grant full bot access — treat like a root password"],
+                    ["API keys (OpenAI, Cloudflare, etc.)", "Vaultwarden + .env.enc (sops)", "Rotation needed if leaked — Vaultwarden tracks when you last rotated"],
+                    ["Database passwords", "Generated randomly at stack creation, stored in Vaultwarden", "Use 32-char random passwords — you never type these manually"],
+                    ["SSH private keys", "Vaultwarden secure note, NOT in git", "One leaked key = access to all servers"],
+                    ["age private key (for sops)", "Vaultwarden + printed physical backup", "Losing this means losing access to all encrypted .env files — treat it like a house key"],
+                    ["Proxmox root password", "Vaultwarden — change from default immediately post-install", "Default or weak Proxmox passwords are a common attack vector"]
+                ]
+            },
+            {
+                "type": "warning",
+                "title": "docker inspect Leaks Env Vars",
+                "content": "Any process on the Docker host that can run <code>docker inspect [container]</code> can read all environment variables passed to that container, including secrets. Least-privilege principle: do not add users to the docker group unless necessary. Consider rootless Docker or use Docker secrets (Swarm) for highly sensitive values like payment keys or master credentials."
+            }
+        ]
+    },
+    {
+        "id": "family-onboarding",
+        "title": "Family Onboarding: Getting Non-Technical Users on Your Services",
+        "elements": [
+            {
+                "type": "p",
+                "content": "You built it. They won't use it unless it's as easy — or easier — than what they had before. The most common homelab failure mode isn't technical: it's spending a weekend building something that only you use because everyone else fell back to Netflix and iCloud the moment there was any friction."
+            },
+            {
+                "type": "h2",
+                "content": "The Golden Rule"
+            },
+            {
+                "type": "p",
+                "content": "Every extra step compared to the commercial alternative is a user you're going to lose. Jellyfin must be <strong>easier to open</strong> than Netflix, not just comparable. Immich must be <strong>automatic</strong>, not something they remember to open. Meet people where they are — phone apps, not web browsers."
+            },
+            {
+                "type": "h2",
+                "content": "Service → Recommended Client App"
+            },
+            {
+                "type": "table",
+                "headers": ["Your Service", "Best Client App", "Platform", "Onboarding Steps", "Common Support Call"],
+                "rows": [
+                    ["Jellyfin", "<a href='https://infuse.firecore.com/' target='_blank'>Infuse 7</a> (iOS/tvOS/macOS) or Jellyfin official app (Android)", "All", "1) Install Infuse. 2) Add server URL. 3) Log in. Infuse is better than the official Jellyfin app on Apple devices — faster, better UI, better hardware decode.", "They're on mobile data. Set up Pangolin so Jellyfin is reachable externally and the URL works everywhere."],
+                    ["Immich", "Immich mobile app (iOS/Android)", "All", "1) Install Immich app. 2) Server URL + credentials. 3) Enable Background Backup in app settings. Done — photos back up automatically.", "Backup stopped because the app was force-closed. Enable iOS background app refresh or Android battery exemption for Immich."],
+                    ["Nextcloud", "Nextcloud mobile app + desktop client", "All", "1) Install app. 2) Server URL + credentials. 3) Enable auto-upload for Camera folder. Works like Dropbox once configured.", "Sync conflict icons on shared files. Editing the same file on two devices simultaneously creates a conflict — one version wins."],
+                    ["Vaultwarden", "Bitwarden app (uses the same client)", "All", "1) Install Bitwarden app. 2) In Settings → Server URL, enter your Vaultwarden URL. 3) Log in. Identical to Bitwarden cloud from the user's perspective.", "Password added on phone isn't on desktop. Bitwarden sync requires being logged in on both devices with vault unlocked."],
+                    ["AdGuard Home", "No app needed — transparent DNS", "Router-level", "Set your router's primary DNS to AdGuard's IP. Everyone on the network is protected automatically with zero app installation.", "A site they need is blocked. AdGuard query log shows what's blocked. Add it to the custom allowlist — 30 seconds."],
+                    ["Home Assistant", "Home Assistant Companion app", "iOS/Android", "1) Install HA Companion. 2) Auto-discovers HA on LAN. 3) Approve device in HA. They get push notifications and the full dashboard on mobile.", "Notifications stopped working. HA Companion needs notification permission re-enabled in iOS Settings."],
+                    ["Mealie (recipe/grocery)", "Mealie web app — add to home screen", "Web (PWA)", "Add Mealie URL as a home screen shortcut. Looks and behaves like a native app. No App Store required.", "They forgot the URL. Pin the Mealie link in your family group chat permanently."]
+                ]
+            },
+            {
+                "type": "h2",
+                "content": "Split-Horizon DNS: Make Your Domain Work on LAN"
+            },
+            {
+                "type": "p",
+                "content": "Without split-horizon DNS, <code>jellyfin.yourdomain.com</code> on the home network routes out through Pangolin tunnel and back — slower and unnecessary. Configure AdGuard Home with DNS rewrites so your domain resolves to the direct LAN IP (e.g. 192.168.1.10) when on the home network. External connections still go through Pangolin normally. This is one configuration change in AdGuard Home under Filters → DNS Rewrites."
+            },
+            {
+                "type": "h2",
+                "content": "The 2AM Support Call Prevention Guide"
+            },
+            {
+                "type": "table",
+                "headers": ["Scenario", "Prevention", "Quick Fix"],
+                "rows": [
+                    ["\"The movies aren't loading\"", "Set up Uptime Kuma with ntfy alerts — you know the server is down before they do.", "SSH in, run docker ps, find the stopped container, docker compose up -d."],
+                    ["\"My photos stopped backing up\"", "Immich background backup needs periodic app activity. Set a calendar reminder for them to open Immich monthly.", "Open Immich app → Backup → Manual Backup. Takes 2 minutes."],
+                    ["\"I can't log in\"", "Use a shared Vaultwarden entry for family service credentials. They never lose the password.", "Reset via Vaultwarden admin panel — you control the master account."],
+                    ["\"It says Not Secure\"", "Forgot to install the mkcert root CA on their device, or a Let's Encrypt cert expired.", "mkcert: AirDrop the root CA cert, guide them to install it in device Settings. Expired cert: run acme.sh renew."],
+                    ["\"It's so slow\"", "Jellyfin is transcoding instead of direct-playing. Check the Jellyfin dashboard — if CPU is maxed, the client format isn't supported natively.", "In Infuse: Settings → Streaming Quality → set max bitrate. Infuse direct-plays almost everything and rarely triggers transcoding."]
+                ]
+            },
+            {
+                "type": "note",
+                "title": "One Person = One In-Person Session",
+                "content": "Schedule a 15-minute session per family member. Install the apps, log them in, walk through one workflow end-to-end while they watch. People who are shown once use the service consistently. People who receive a link and text instructions almost never follow through."
+            }
+        ]
+    },
+    {
+        "id": "proxmox-hands-on",
+        "title": "Proxmox: Hands-On Setup Guide",
+        "elements": [
+            {
+                "type": "p",
+                "content": "Proxmox is referenced throughout this plan as the Stage 4 OS, but the concepts — VMs, LXC containers, Proxmox Backup Server — need hands-on experience to click. This section covers the first 90 minutes after installation: what to configure, what to create, and how to think about VM vs LXC."
+            },
+            {
+                "type": "h2",
+                "content": "VM vs LXC: The Decision"
+            },
+            {
+                "type": "p",
+                "content": "This is the most common question for new Proxmox users. Short answer: use LXC for Linux services you trust, use VMs for anything needing full OS isolation or running non-Linux."
+            },
+            {
+                "type": "table",
+                "headers": ["Criteria", "LXC Container", "Full VM", "Winner"],
+                "rows": [
+                    ["Resource overhead", "Near-zero — shares kernel with host", "50–200MB RAM overhead per VM minimum", "LXC"],
+                    ["Boot time", "1–3 seconds", "15–60 seconds", "LXC"],
+                    ["Isolation level", "Process-level — shares host kernel", "Full hardware virtualization — completely isolated", "VM"],
+                    ["Running Docker inside", "Works with nesting enabled, minor quirks", "Cleanest — no kernel conflicts at all", "VM"],
+                    ["Windows / macOS", "❌ Linux only", "✅ Any OS with an ISO", "VM"],
+                    ["GPU/USB passthrough", "Direct access — same as bare metal", "Requires PCIe passthrough configuration", "LXC"],
+                    ["Snapshot + backup speed", "Faster — filesystem-level", "Slower — full disk image", "LXC"],
+                    ["Recommended for this plan", "Light services: AdGuard, ntfy, monitoring, Vaultwarden", "Docker host VM, Frigate, Windows workloads, anything GPU-intensive", "Depends"]
+                ]
+            },
+            {
+                "type": "h2",
+                "content": "First 5 Actions After Proxmox Install"
+            },
+            {
+                "type": "table",
+                "headers": ["Step", "What to Do", "Why"],
+                "rows": [
+                    ["1. Disable enterprise repo", "Comment out /etc/apt/sources.list.d/pve-enterprise.list. Add the no-subscription repo.", "Enterprise repo requires a paid subscription. Without this, apt update throws errors on every run."],
+                    ["2. Set up Proxmox Backup Server", "Install PBS on a separate VM or a secondary drive. Point nightly backups to it.", "PBS gives versioned, deduplicated backups of every VM and LXC. Take your first snapshot before you do anything else."],
+                    ["3. Verify network bridge", "Confirm vmbr0 is created and VMs can reach the internet through it.", "All VMs and LXCs use vmbr0 for LAN access. Misconfigured bridge = no network for any guest."],
+                    ["4. Create your first LXC (Ubuntu 22.04)", "Datacenter → Node → Create CT → Ubuntu template → 2 cores, 2GB RAM, 20GB disk.", "Creates a cheap sandbox to practice creating, starting, stopping, and snapshotting before deploying real services."],
+                    ["5. Set up SSH key authentication", "ssh-copy-id root@proxmox-ip from your workstation. Disable password auth in /etc/ssh/sshd_config.", "Root password login to a hypervisor is a security risk. Key-only auth from your machine only."]
+                ]
+            },
+            {
+                "type": "h2",
+                "content": "Snapshot Workflow — Your Most Important Habit"
+            },
+            {
+                "type": "p",
+                "content": "Before any risky action on a VM or LXC — major package update, config change, new service install — take a snapshot. Proxmox snapshots are near-instant (seconds for LXC, under a minute for most VMs). If something breaks, roll back in 30 seconds. This removes all fear from experimentation."
+            },
+            {
+                "type": "table",
+                "headers": ["Trigger", "Snapshot Name Convention", "Keep For"],
+                "rows": [
+                    ["Before major apt upgrade", "pre-apt-upgrade-YYYY-MM-DD", "48 hours — delete once stable"],
+                    ["Before new service deployment", "pre-[service-name]-install", "1 week"],
+                    ["Before any network config change", "pre-network-change-YYYY-MM-DD", "48 hours"],
+                    ["Weekly scheduled via PBS", "weekly-[date] (automated)", "4 weeks rolling"]
+                ]
+            },
+            {
+                "type": "h2",
+                "content": "Proxmox Backup Server (PBS)"
+            },
+            {
+                "type": "p",
+                "content": "PBS is a separate Proxmox product designed specifically for backing up VMs and LXCs. It deduplicates across backups (a 20GB VM that changes 1GB/day doesn't use 20GB × 30 days of storage), encrypts at rest, and provides a restore UI. Run PBS either on a separate small VM or point it at the NAS. Schedule daily backups at 3am."
+            },
+            {
+                "type": "warning",
+                "title": "Never Store Backups on the Proxmox Root Disk",
+                "content": "A common mistake: storing VM backups on the same physical disk as Proxmox itself. If that disk fails, you lose both the running VMs and their backups simultaneously. Always point PBS to a separate physical device — the NAS, a secondary drive, or Backblaze B2 via rclone."
+            }
+        ]
+    },
+    {
+        "id": "container-management-ui",
+        "title": "Container Management UI: Portainer vs Dockge",
+        "elements": [
+            {
+                "type": "p",
+                "content": "A container management UI is optional — everything it does, you can do in CLI. But for quickly checking container states, reading logs, or restarting a service without SSH-ing in, a good UI saves real friction. Two tools dominate the homelab space with fundamentally different philosophies."
+            },
+            {
+                "type": "h2",
+                "content": "Portainer vs Dockge"
+            },
+            {
+                "type": "table",
+                "headers": ["Criteria", "Portainer CE", "Dockge"],
+                "rows": [
+                    ["Philosophy", "Manage all Docker resources — containers, volumes, networks, images, secrets", "Compose-first — stacks are the primary unit, not individual containers"],
+                    ["UI paradigm", "Full Docker dashboard — everything visible, complex navigation", "Clean stack list with inline editor — minimal and focused"],
+                    ["Compose file management", "Upload a stack, but inline editing is limited", "Edit compose.yml directly in the browser with syntax highlighting"],
+                    ["Multi-host support", "✅ Portainer Agent on remote hosts", "❌ Single host only"],
+                    ["Individual container control", "✅ Full granular control", "⚠️ Only containers that are part of a named stack"],
+                    ["Resource usage", "~100MB RAM, heavier startup", "~20MB RAM, very lightweight"],
+                    ["Configuration overhead", "Significant setup for full features", "Zero config — runs immediately from one compose file"],
+                    ["Best for", "Complex multi-host setups, teams, or when you need granular resource management", "Solo homelab where everything is compose-based (this plan)"]
+                ]
+            },
+            {
+                "type": "h2",
+                "content": "Recommendation for This Plan: Dockge"
+            },
+            {
+                "type": "p",
+                "content": "Since this plan organizes everything as Docker Compose stacks, <a href='https://github.com/louislam/dockge' target='_blank'>Dockge</a> is the natural fit. You define each service group as a stack under <code>/opt/stacks/</code> (e.g. /opt/stacks/media/, /opt/stacks/monitoring/), and Dockge gives you a clean UI to start, stop, edit, and monitor each one. Created by the same developer as Uptime Kuma."
+            },
+            {
+                "type": "table",
+                "headers": ["Dockge Feature", "What It Does"],
+                "rows": [
+                    ["Stack list view", "All compose stacks on one page — running/stopped status, quick start/stop/restart per stack"],
+                    ["Inline compose editor", "Edit docker-compose.yml directly in browser with YAML syntax highlighting — minor config changes without SSH"],
+                    ["Real-time log stream", "Stream logs from any container in the browser — same as docker logs -f but without opening a terminal"],
+                    ["Auto-detect existing stacks", "Point Dockge at /opt/stacks and it discovers all existing compose directories automatically on first run"],
+                    ["Interactive container shell", "Run commands inside a container (docker exec) from the UI — useful for quick database queries"]
+                ]
+            },
+            {
+                "type": "note",
+                "title": "Neither Replaces CLI Knowledge",
+                "content": "A UI is a convenience layer, not a crutch. When containers fail to start, the error is often in terminal output that the UI truncates or hides. Know how to <code>docker compose up -d</code>, <code>docker logs [container]</code>, and <code>docker exec -it [container] bash</code> from the CLI — the UI is for routine operations, not debugging."
+            }
+        ]
+    },
+    {
+        "id": "game-streaming",
+        "title": "Game Streaming: Sunshine & Moonlight",
+        "elements": [
+            {
+                "type": "p",
+                "content": "Once Stage 4 gives you a tower with a dedicated GPU, Sunshine turns it into a game streaming server accessible from anywhere in your home — or anywhere in the world via Tailscale. Play from the couch on a TV stick, from a laptop in another room, or from a tablet while traveling. Near-zero input latency on LAN, playable latency over WAN with a good connection."
+            },
+            {
+                "type": "h2",
+                "content": "How It Works"
+            },
+            {
+                "type": "p",
+                "content": "<strong>Sunshine</strong> runs on the tower (host) and captures the GPU output using NVENC (NVIDIA) or VAAPI (AMD/Intel). <strong>Moonlight</strong> runs on the client (TV stick, phone, laptop) and decodes the stream. The client sends controller/keyboard/mouse input back to the host. From the user's perspective: open Moonlight, tap a game, it launches fullscreen — identical to sitting at the tower."
+            },
+            {
+                "type": "h2",
+                "content": "Hardware Requirements"
+            },
+            {
+                "type": "table",
+                "headers": ["Component", "Minimum", "Recommended", "Notes"],
+                "rows": [
+                    ["GPU (host)", "NVIDIA GTX 1000 series, AMD RX 5000, or Intel Arc", "NVIDIA RTX series (best NVENC quality)", "NVENC (NVIDIA) gives the best quality-to-performance ratio for encoding. Intel iGPU works for lighter games at lower bitrates."],
+                    ["CPU (host)", "4 cores / 3GHz", "Any modern 8-core", "CPU usage during streaming is low — GPU encoder handles the heavy lifting"],
+                    ["Network (LAN)", "100Mbps wired or Wi-Fi 5", "Gigabit wired or Wi-Fi 6", "Wired always preferred — wireless adds latency variance and occasional stutters"],
+                    ["Network (remote)", "15 Mbps upload on host side", "50 Mbps+ upload", "1080p/60fps at high quality needs ~20–30 Mbps upload from your home connection"]
+                ]
+            },
+            {
+                "type": "h2",
+                "content": "Moonlight Client Platforms"
+            },
+            {
+                "type": "table",
+                "headers": ["Platform", "Client App", "Best Use Case", "Controller Support"],
+                "rows": [
+                    ["Windows / macOS / Linux", "<a href='https://moonlight-stream.org/' target='_blank'>Moonlight Desktop</a>", "Laptop gaming in another room, office-to-living-room streaming", "✅ Any USB or Bluetooth controller"],
+                    ["iOS / iPadOS", "Moonlight (App Store)", "iPad as a portable gaming screen", "✅ MFi controllers, Xbox/PS controller via Bluetooth"],
+                    ["Android", "Moonlight (Play Store)", "Android TV, tablets, phones", "✅ All major controllers"],
+                    ["Amazon Fire TV / Stick", "Moonlight (sideload APK)", "Couch TV gaming without a PC in the living room", "✅ Any USB/Bluetooth controller"],
+                    ["Raspberry Pi 4/5", "Moonlight Qt", "Dedicated couch client — cheap, silent, always-on", "✅ USB controllers"]
+                ]
+            },
+            {
+                "type": "h2",
+                "content": "Bitrate Tuning Guide"
+            },
+            {
+                "type": "table",
+                "headers": ["Scenario", "Bitrate", "Resolution / FPS", "Notes"],
+                "rows": [
+                    ["LAN — wired gigabit", "50–80 Mbps", "1440p or 4K / 60fps", "No reason to limit on gigabit — set as high as the client decoder handles"],
+                    ["LAN — Wi-Fi 6", "30–50 Mbps", "1080p / 60fps", "Wi-Fi adds jitter — lower bitrate reduces stuttering more than higher quality helps"],
+                    ["Remote — good broadband (100+ Mbps)", "20–30 Mbps", "1080p / 60fps", "Practical limit — beyond 30 Mbps over WAN you stop seeing visible improvement"],
+                    ["Remote — average connection", "10–15 Mbps", "1080p / 30fps or 720p / 60fps", "Prioritize consistent FPS over resolution for playability"],
+                    ["Turn-based / slow games", "8–12 Mbps", "1080p / 30fps", "Latency matters less — works well even over 4G/LTE from a hotel"]
+                ]
+            },
+            {
+                "type": "note",
+                "title": "Remote Play via Tailscale",
+                "content": "Sunshine + Tailscale gives you game streaming from anywhere — hotel rooms, family visits, travel — without port forwarding or exposing the streaming port to the internet. Add your streaming devices to your Tailscale network and use the Tailscale IP in Moonlight instead of your home IP."
+            }
+        ]
+    },
+    {
+        "id": "home-assistant-deep-dive",
+        "title": "Home Assistant: Automations Worth Building",
+        "elements": [
+            {
+                "type": "p",
+                "content": "Home Assistant (HA) is introduced in Stage 2, but the real value comes from automations — not just device control. Most people install HA, add their lights and thermostat, then leave it at that. The point where HA becomes genuinely useful is when it starts doing things <em>before you think to ask</em>."
+            },
+            {
+                "type": "h2",
+                "content": "Integration Categories Worth Setting Up"
+            },
+            {
+                "type": "table",
+                "headers": ["Category", "Recommended Protocol", "Examples", "Notes"],
+                "rows": [
+                    ["Lighting", "Zigbee via Zigbee2MQTT (SONOFF Dongle Plus)", "Ikea Tradfri, Philips Hue without hub, Aqara bulbs", "Zigbee is local, fast, and cheap. Keep bulbs off Z-Wave — two mesh protocols is enough complexity."],
+                    ["Sensors", "Zigbee — Aqara and Sonoff sensors", "Door/window contact, motion, water leak, temperature/humidity", "These are the inputs for most useful automations. Start with door + motion sensors before anything else."],
+                    ["Climate", "Local integration where possible (Ecobee, Nest via HA cloud)", "Thermostat, smart AC, floor heating", "Automate setback when no one's home using presence detection — immediate energy savings."],
+                    ["Presence detection", "HA Companion app on all phones", "Who's home, ETAs, last seen location (opt-in)", "The most useful automations depend on presence. Set this up first before writing any automations."],
+                    ["Media players", "Jellyfin integration + Chromecast/Apple TV", "Pause lights when movie starts, resume when paused", "HA Jellyfin integration reads playback state directly in real time."],
+                    ["Energy", "Shelly smart plugs or Emporia Vue panel monitor", "Per-device energy monitoring, total home consumption", "Required for LL97 compliance tracking and scheduling high-draw devices around NYISO peak hours."],
+                    ["Notifications", "ntfy → HA notify service + Telegram bot", "Alert on any HA automation trigger", "Always route HA notifications through ntfy — platform-independent and works offline."]
+                ]
+            },
+            {
+                "type": "h2",
+                "content": "Automations Worth Building"
+            },
+            {
+                "type": "table",
+                "headers": ["Automation", "Trigger", "Action", "Complexity"],
+                "rows": [
+                    ["Leave home mode", "All presence trackers leave home zone", "Lower thermostat 4°F, turn off all lights, arm security mode, send Telegram confirmation", "Low"],
+                    ["Arrive home mode", "First person enters home zone", "Set thermostat to comfort temp, turn on entry lights, disarm security", "Low"],
+                    ["Movie mode", "Jellyfin playback starts in living room", "Dim living room lights to 20%, turn off overhead, enable DND on phones via Companion", "Low"],
+                    ["Movie pause", "Jellyfin playback pauses", "Gradually raise lights to 60%", "Low"],
+                    ["Leak alert", "Aqara water sensor detects moisture", "Immediate Telegram alert, flash all lights red, optional smart valve shutoff", "Low — high value"],
+                    ["Bedtime routine", "Time trigger 10:30pm OR last person enters bedroom zone", "Turn off all non-bedroom lights, lower thermostat, lock front door, send Telegram confirmation", "Medium"],
+                    ["Door left open", "Contact sensor open for >5 minutes while no one in entry zone", "Telegram nudge to close it", "Low"],
+                    ["High-draw appliance alert", "Smart plug wattage > threshold for > 3 hours", "Telegram: 'Stove has been on for 3 hours — still in use?'", "Low"],
+                    ["Morning brief trigger", "First motion detected in kitchen after 6am", "Trigger Hermes morning briefing via webhook, announce via TTS on kitchen speaker", "Medium"],
+                    ["Guest mode", "Manual dashboard toggle", "Create guest Wi-Fi SSID via router API, set AdGuard to permissive preset, enable guest Jellyfin access", "Medium"],
+                    ["Power outage detect", "UPS integration reports utility loss", "Immediate Telegram alert, auto-shutdown non-critical VMs to extend battery runtime", "Medium"],
+                    ["Package delivery", "Frigate detects person at door + package class", "Snapshot + Telegram photo: 'Package may have been delivered'", "Medium (requires Frigate)"]
+                ]
+            },
+            {
+                "type": "h2",
+                "content": "Must-Have Add-ons"
+            },
+            {
+                "type": "table",
+                "headers": ["Add-on", "What It Does", "Why Essential"],
+                "rows": [
+                    ["Zigbee2MQTT", "Bridges Zigbee USB dongle to MQTT broker — exposes all Zigbee devices to HA", "Required for local Zigbee control without any cloud dependency"],
+                    ["Mosquitto Broker", "MQTT message broker — used by Zigbee2MQTT, Node-RED, and many integrations", "Foundation for all local device communication"],
+                    ["Studio Code Server", "VS Code in browser for HA YAML config files", "Better than File Editor for complex automations — syntax highlighting, multi-file editing"],
+                    ["Node-RED", "Visual flow-based automation builder — more powerful than HA's built-in editor for complex conditional logic", "Optional but valuable for multi-condition automations that would require long YAML otherwise"],
+                    ["HA Google Drive Backup", "Automated HA snapshot backups to Google Drive on a schedule", "Essential — HA config is painful to reconstruct from scratch after a drive failure"]
+                ]
+            },
+            {
+                "type": "warning",
+                "title": "Avoid the Automation Complexity Trap",
+                "content": "Every automation you add is something that can break, misfire, or confuse family members. Start with five automations that solve real daily friction. Evaluate each one monthly — delete automations that require more maintenance than they save. Complexity compounds: ten small automations interacting creates behavior no one can predict."
+            }
+        ]
+    },
+    {
+        "id": "cloud-roi-cost-accounting",
+        "title": "Cloud ROI: Is Your Homelab Actually Cheaper?",
+        "elements": [
+            {
+                "type": "p",
+                "content": "The honest answer: for most people, a homelab is not cheaper than cloud services — at least not in Year 1. The economic case for self-hosting is a 3–5 year calculation that depends on your electricity rate, what services you actually use, and whether you count your own time. Here are the numbers."
+            },
+            {
+                "type": "h2",
+                "content": "Hardware Cost Amortization"
+            },
+            {
+                "type": "table",
+                "headers": ["Hardware", "Typical Cost (Refurb/New)", "Useful Life", "Annual Cost", "Notes"],
+                "rows": [
+                    ["Mini PC (HP EliteDesk 800 G6)", "$150–250 refurb", "5–7 years", "$30–50/year", "Stage 1 entry point — very low amortization cost"],
+                    ["NAS (Synology DS923+)", "$500 NAS + $400–800 drives", "7–10 years NAS / 5–7 years drives", "$130–200/year", "Drives fail independently — stagger purchases to avoid lump costs"],
+                    ["Tower workstation (refurb Xeon)", "$300–600 refurb", "5–7 years", "$60–120/year", "GPU adds $200–800 depending on tier — amortize separately"],
+                    ["Networking (managed switch + UPS)", "$200–400 total", "7–10 years", "$25–55/year", "UPS battery replacements every 3–4 years (~$50 each)"],
+                    ["Full build (Mini + NAS + Tower + Network)", "~$2,000–3,500 fully built", "—", "$245–425/year total", "Excludes GPU if AI workloads added at Stage 4"]
+                ]
+            },
+            {
+                "type": "h2",
+                "content": "Electricity Cost"
+            },
+            {
+                "type": "p",
+                "content": "Use your Kill A Watt meter or smart plug energy monitoring to measure actual draw. NYC average electricity rate is approximately $0.20/kWh. Idle draw matters far more than peak draw for always-on servers."
+            },
+            {
+                "type": "table",
+                "headers": ["Device", "Typical Idle Draw", "Annual Cost at $0.20/kWh"],
+                "rows": [
+                    ["Mini PC (HP EliteDesk, idle)", "15–25W", "$26–44/year"],
+                    ["NAS (Synology 4-bay, active)", "20–35W", "$35–61/year"],
+                    ["Tower workstation (idle, no GPU)", "40–80W", "$70–140/year"],
+                    ["Tower (GPU under load 50% of time, RTX 3070)", "200–350W avg", "$175–306/year (at 50% duty cycle)"],
+                    ["Network switch (unmanaged 8-port)", "5–10W", "$9–18/year"],
+                    ["UPS (standby loss)", "10–20W", "$18–35/year"],
+                    ["Total typical homelab (idle, no GPU load)", "~90–170W continuous", "$158–298/year electricity"]
+                ]
+            },
+            {
+                "type": "h2",
+                "content": "Cloud Services You Are Replacing"
+            },
+            {
+                "type": "table",
+                "headers": ["Cloud Service", "Annual Cost", "Self-Hosted Equivalent", "Notes"],
+                "rows": [
+                    ["Netflix Standard + HD", "$186/year", "Jellyfin + media pipeline", "Content acquisition handled separately from the server software"],
+                    ["iCloud 2TB (one person)", "$120/year", "Immich + Nextcloud on NAS", "Immich for photos, Nextcloud for files"],
+                    ["Google One 2TB (one person)", "$120/year", "Nextcloud on NAS", "—"],
+                    ["Plex Pass (lifetime amortized)", "$50/year", "Jellyfin (free forever)", "No subscription, no feature gates"],
+                    ["1Password Family (5 members)", "$60/year", "Vaultwarden (~$2/year electricity)", "Vaultwarden is free; electricity is the only cost"],
+                    ["Notion Personal Pro", "$96/year", "SilverBullet (free + hosting)", "Local-only, no per-seat cost"],
+                    ["GitHub Private Repos (Team)", "$48/year", "Gitea / Forgejo (free)", "Unlimited private repos, self-hosted CI possible"],
+                    ["Backblaze Personal Backup", "$108/year", "Rclone to Backblaze B2 (pay-per-use)", "B2 costs ~$6/TB/month — cheaper at homelab scale"],
+                    ["Total common cloud stack", "$788–1,000+/year", "~$0 software cost", "Replace with homelab + $160–300/year electricity + amortization"]
+                ]
+            },
+            {
+                "type": "h2",
+                "content": "Break-Even Analysis"
+            },
+            {
+                "type": "table",
+                "headers": ["Stage", "Annual Homelab Cost", "Annual Cloud Replaced", "Net Savings", "Break-Even"],
+                "rows": [
+                    ["Stage 1 only (Mini PC)", "$75–100/year", "$300–400 (Netflix + iCloud + Notion + GitHub)", "$200–325 saved/year", "Immediate — Mini PC pays for itself in Year 1"],
+                    ["Stage 1–3 (Mini PC + NAS)", "$200–350/year", "$600–800 (adds photo + file storage)", "$250–600 saved/year", "~6–12 months"],
+                    ["Full build (all stages)", "$400–700/year", "$900–1,200+/year", "$200–800 saved/year", "2–3 years depending on hardware cost"]
+                ]
+            },
+            {
+                "type": "h2",
+                "content": "What the Numbers Don't Capture"
+            },
+            {
+                "type": "p",
+                "content": "The ROI calculation misses the real reasons most people build homelabs: <strong>learning</strong> (worth more than the hardware cost if it improves your job skills), <strong>privacy</strong> (your photos and files stay on your hardware), <strong>control</strong> (no vendor can remove a feature or raise prices), and <strong>capacity</strong> (100TB at home vs paying per-GB forever). The break-even math is just the permission slip."
+            },
+            {
+                "type": "note",
+                "title": "Don't Count Your Time",
+                "content": "If you count your time at an hourly rate, no homelab is ever economical. The time you spend is the hobby — it's equivalent to asking whether woodworking is cheaper than buying furniture. If you're here for the learning and the control, the ROI is already positive on day one."
             }
         ]
     },
