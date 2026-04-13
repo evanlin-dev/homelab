@@ -1765,7 +1765,7 @@ const PLAN_DATA = [
                         "Read-only viewer. Pair with Uptime Kuma for alerts."
                     ],
                     [
-                        "<a href=\"https://gethomepage.dev/\" target=\"_blank\">Homepage / Homarr</a>",
+                        "<a href=\"https://gethomepage.dev/\" target=\"_blank\">Homepage</a> / <a href=\"https://homarr.dev/\" target=\"_blank\">Homarr</a>",
                         "Dashboard",
                         "2/10",
                         "Unified dashboard with service icons, system stats, quick links.",
@@ -1847,6 +1847,154 @@ const PLAN_DATA = [
                 "content": "Personal Bot Hub (Discord/Telegram)"
             },
             {
+                "type": "p",
+                "content": "Your bot hub is the control panel for everything else in this guide — it's how you interact with your homelab without opening a browser. Think of it as a chat interface layered over all your services: alerts come to you, commands go back, and your AI agent is always one message away. The key insight is that most of what you want already has a dashboard — the bot's job is to surface the right information at the right moment, not replace the dashboard entirely."
+            },
+            {
+                "type": "h3",
+                "content": "Telegram vs Discord: When to Use Which"
+            },
+            {
+                "type": "table",
+                "headers": [
+                    "Criteria",
+                    "Telegram",
+                    "Discord"
+                ],
+                "rows": [
+                    [
+                        "LLM streaming / AI chat",
+                        "✅ Best — lower latency, real-time feel",
+                        "⚠️ Slower, less ideal for streaming"
+                    ],
+                    [
+                        "Push notifications & alerts",
+                        "✅ Instant, reliable push to phone",
+                        "⚠️ Desktop-biased, easy to miss on mobile"
+                    ],
+                    [
+                        "Multi-user family/friend access",
+                        "⚠️ Groups work but clunky for roles",
+                        "✅ Channels + role permissions built-in"
+                    ],
+                    [
+                        "Voice & music bots",
+                        "❌ Not supported",
+                        "✅ Native voice channel support"
+                    ],
+                    [
+                        "Bot API simplicity",
+                        "✅ Easier — BotFather setup in minutes",
+                        "More complex — requires app registration"
+                    ],
+                    [
+                        "Photo / file sharing",
+                        "✅ Encrypted, fast thumbnail loading",
+                        "✅ Fine for non-sensitive files"
+                    ],
+                    [
+                        "Sensitive personal alerts",
+                        "✅ Private encrypted chat",
+                        "⚠️ Avoid — server logs persist"
+                    ],
+                    [
+                        "Scoped server permissions",
+                        "❌ Limited",
+                        "✅ Per-channel, per-role command restrictions"
+                    ]
+                ]
+            },
+            {
+                "type": "h3",
+                "content": "Bot Scoping (Discord/Telegram/WeChat): Who Can Run What"
+            },
+            {
+                "type": "p",
+                "content": "Discord's biggest advantage is role-based permissions, but if your family uses WeChat or Telegram, you must handle permissions at the bot token or group level. Never expose admin commands in a shared group — scope them to private chats only."
+            },
+            {
+                "type": "table",
+                "headers": [
+                    "Platform / Context",
+                    "Allowed Commands",
+                    "Blocked Commands",
+                    "Implementation Note"
+                ],
+                "rows": [
+                    [
+                        "Private Discord/Telegram (you only)",
+                        "All commands — docker restart, server shutdown, SSL renew, Hermes full access",
+                        "Nothing blocked",
+                        "Only your User ID has access. Guard this carefully."
+                    ],
+                    [
+                        "Family WeChat / Telegram Group (parents, siblings)",
+                        "/lights, /cam [front door only], /laundry, /grocery add, /who-is-home, /intercom",
+                        "docker, restart, shutdown, any shell commands, Hermes agent",
+                        "Role: family. Dedicated WeChat/Telegram bot token or explicit allowlist of family User IDs."
+                    ],
+                    [
+                        "Friends / building server",
+                        "/request [media], /game-server start/stop, /music add, /translate",
+                        "All home, infra, and personal commands",
+                        "Role: guest. Only #media-requests and #game-server channels. Read-only for most."
+                    ],
+                    [
+                        "#admin-only channel (private server)",
+                        "Shell commands, Hermes full agent, docker management, VPN control",
+                        "N/A",
+                        "Lock this channel to your user ID only, even inside your private server. Extra paranoia is fine here."
+                    ]
+                ]
+            },
+            {
+                "type": "h3",
+                "content": "How to Build It (Without Writing a Full Bot)"
+            },
+            {
+                "type": "p",
+                "content": "For 80% of notification use cases, you don't need to write a bot at all. n8n has native Telegram and Discord nodes — drag-and-drop workflows that send messages, parse commands via webhooks, and react to triggers. Only write a custom bot when you need persistent conversation state (like an LLM chat session) or complex command parsing."
+            },
+            {
+                "type": "table",
+                "headers": [
+                    "Tool",
+                    "Best For",
+                    "Complexity"
+                ],
+                "rows": [
+                    [
+                        "n8n (Telegram/Discord nodes)",
+                        "One-way alerts, simple triggered commands, webhook → message pipelines",
+                        "Low — no code needed"
+                    ],
+                    [
+                        "Hermes gateway",
+                        "LLM chat, persistent memory, multi-step agent tasks from mobile",
+                        "Low — config file + bot token"
+                    ],
+                    [
+                        "ntfy → Telegram forward",
+                        "Pure push notifications — server events, backup confirmations",
+                        "Very low — one-liner in compose"
+                    ],
+                    [
+                        "python-telegram-bot / aiogram",
+                        "Custom stateful bots, complex command trees, inline keyboards",
+                        "Medium — Python required"
+                    ],
+                    [
+                        "discord.py / discord.js",
+                        "Slash commands, role-gated features, voice bots",
+                        "Medium — more boilerplate than Telegram"
+                    ]
+                ]
+            },
+            {
+                "type": "h3",
+                "content": "Core Use Cases"
+            },
+            {
                 "type": "table",
                 "headers": [
                     "Use Case",
@@ -1859,64 +2007,181 @@ const PLAN_DATA = [
                         "Server Status Alerts",
                         "Real-time pings for downtime",
                         "Telegram",
-                        "Fast, reliable push notifications"
+                        "Fast, reliable push notifications — use ntfy as the intermediary"
                     ],
                     [
                         "LLM Chat Gateway",
-                        "Chat with local AI models",
+                        "Chat with your preferred API model or local Ollama instance",
                         "Telegram",
-                        "Streaming speed is significantly faster than Discord"
+                        "Large context window models (Gemini 2.5 Pro, Claude) ideal for analyzing long logs via mobile"
                     ],
                     [
                         "Home Automation",
                         "Remote device control",
-                        "Discord",
-                        "Great for community/family multi-user access"
-                    ],
-                    [
-                        "Media Requests",
-                        "Request movies via bot",
-                        "Discord",
-                        "Integration with Jellyseerr is native and robust"
+                        "WeChat / Telegram",
+                        "Great for multi-user family access via group chats"
                     ],
                     [
                         "Security Notifier",
                         "Motion detection snapshots",
                         "Telegram",
-                        "Encrypted and faster photo loading in most apps"
+                        "Encrypted and faster photo loading — keep camera snapshots off Discord servers"
+                    ],
+                    [
+                        "Homelab RAG Assistant",
+                        "Ask questions about your own documentation/scripts",
+                        "Telegram",
+                        "Hermes with local embedding model searches your codebase and docs via bot"
+                    ],
+                    [
+                        "Morning Briefing",
+                        "7am digest: MTA status, weather, top Plane task, calendar events, NYISO grid forecast",
+                        "Telegram",
+                        "Hermes cron at 6:55am — one message instead of opening five apps"
+                    ],
+                    [
+                        "Quick Expense Capture",
+                        "/spend 14.50 lunch — appends to CSV, weekly Sunday summary",
+                        "Telegram",
+                        "Capture at point of purchase; review in Actual Budget or Firefly III"
+                    ],
+                    [
+                        "Dead Man's Switch",
+                        "Daily /ok ping — if no reply in 24h, notifies a family member",
+                        "Telegram",
+                        "Useful during travel. Simple cron + reply handler."
+                    ],
+                    [
+                        "Live Camera Snapshot",
+                        "/cam front — pulls Frigate snapshot from named camera instantly",
+                        "Telegram (private only)",
+                        "Never expose /cam in shared servers. Scoped to your private Telegram only."
                     ]
                 ]
             },
             {
-                "type": "p",
-                "content": "Why Telegram? For LLM streaming and rapid notifications, Telegram generally provides lower latency and a more 'real-time' feel compared to Discord."
-            },
-            {
                 "type": "h3",
-                "content": "Social & Fun Features (For Friends)"
+                "content": "Social & Fun Features (Friends Discord)"
             },
             {
                 "type": "table",
                 "headers": [
                     "Feature",
                     "Implementation",
-                    "Recommended Platform"
+                    "Recommended Platform",
+                    "Scope"
+                ],
+                "rows": [
+                    [
+                        "Game Server Control",
+                        "Start/Stop Minecraft or Palworld via /start command",
+                        "Discord",
+                        "Friends server — #game-server channel, guest role only"
+                    ],
+                    [
+                        "Geoguessr / Trivia Minigame",
+                        "Bot posts a zoomed-in street view image or trivia question for friends to guess",
+                        "Discord",
+                        "Friends server — #bot-games channel"
+                    ],
+                    [
+                        "Birthday & Anniversary Announcer",
+                        "Tracks dates and automatically sends a customized greeting/meme to the group",
+                        "Discord",
+                        "Friends server — #general channel"
+                    ],
+                    [
+                        "Server Status & Leaderboards",
+                        "Public embeds showing game server uptime, player count, and weekly game win/loss rankings",
+                        "Discord",
+                        "Friends server — #server-status channel"
+                    ]
+                ]
+            },
+            {
+                "type": "h3",
+                "content": "Social & Fun Features (Family WeChat/Telegram)"
+            },
+            {
+                "type": "table",
+                "headers": [
+                    "Feature",
+                    "Implementation",
+                    "Recommended Platform",
+                    "Scope"
                 ],
                 "rows": [
                     [
                         "Local Translation",
-                        "Instant Chinese/English translation for group chats",
-                        "Discord"
+                        "Instant Chinese/English translation for cross-generational group chats",
+                        "WeChat / Telegram",
+                        "Family group chat"
                     ],
                     [
-                        "Game Server Control",
-                        "Start/Stop Minecraft or Palworld via /start command",
-                        "Discord"
+                        "Daily Photo Throwback",
+                        "Bot pulls a random photo from 5 years ago via Immich API and posts it at noon",
+                        "WeChat / Telegram",
+                        "Family group chat"
                     ],
                     [
-                        "Music Queue Bot",
-                        "Friends can add YouTube/Spotify links to floor speakers",
-                        "Discord"
+                        "Shared Grocery List",
+                        "Reply 'buy milk' to add to Mealie/groceries without opening an app",
+                        "WeChat / Telegram",
+                        "Family group chat"
+                    ],
+                    [
+                        "Restaurant Roulette",
+                        "/wheretoeat pulls 3 random highly-rated places nearby to settle family dinner debates",
+                        "WeChat / Telegram",
+                        "Family group chat"
+                    ],
+                    [
+                        "Trivia/Quiz Master",
+                        "Bot runs a 5-question trivia game about NYC history or custom family facts",
+                        "WeChat / Telegram",
+                        "Family group chat"
+                    ],
+                    [
+                        "Daily Family Digest",
+                        "AI summarizes the day's chat in 3 bullet points for busy family members who miss messages",
+                        "WeChat / Telegram",
+                        "Family group chat"
+                    ],
+                    [
+                        "Expense Splitter",
+                        "Quickly log shared family expenses (e.g., 'Paid $50 for internet') to sync to tracking app",
+                        "WeChat / Telegram",
+                        "Family group chat"
+                    ],
+                    [
+                        "Birthday & Holiday Announcer",
+                        "Tracks birthdays, anniversaries, and holidays (Mother's/Father's Day), sending a customized greeting/photo collage",
+                        "WeChat / Telegram",
+                        "Family group chat"
+                    ],
+                    [
+                        "Family 'Stock Market' / Betting",
+                        "A playful bot where family members 'bet' fake points on who will do a chore first or win a game",
+                        "Telegram",
+                        "Family group chat"
+                    ],
+                    [
+                        "Family Story Builder",
+                        "Everyone contributes one sentence per day to build a ridiculous ongoing family story",
+                        "Telegram",
+                        "Family group chat"
+                    ],
+                    [
+                        "Strict Expense Tracker",
+                        "A shared expense bot ('Where Is My Money') with a funny 'Guilt-Tripping Mom' personality",
+                        "Telegram",
+                        "Family group chat"
+                    ],
+                    [
+                        "Background Song Identifier",
+                        "Reply to any video sent in chat to instantly identify the song playing in it",
+                        "Telegram",
+                        "Family group chat"
                     ]
                 ]
             },
@@ -1929,28 +2194,51 @@ const PLAN_DATA = [
                 "headers": [
                     "Feature",
                     "Description",
-                    "Recommended Platform"
+                    "Recommended Platform",
+                    "Scope"
                 ],
                 "rows": [
                     [
                         "Family Status",
                         "Query 'Who is home?' or 'Is the laundry done?'",
-                        "Telegram/Discord"
+                        "WeChat / Telegram",
+                        "Family group chat"
                     ],
                     [
                         "Leak Detection",
                         "Instant critical alert if Aqara sensors detect water under sink",
-                        "Telegram"
+                        "WeChat / Telegram",
+                        "Private or Family group chat — never shared servers"
                     ],
                     [
                         "Door Lock Alert",
                         "Nudge if front door is unlocked after 11 PM",
-                        "Telegram"
+                        "WeChat / Telegram",
+                        "Family group chat"
                     ],
                     [
                         "Stove Monitor",
                         "Critical alert if smart plug detects high load for >3 hours",
-                        "Telegram"
+                        "WeChat / Telegram",
+                        "Family group chat"
+                    ],
+                    [
+                        "Package Delivery Alert",
+                        "Camera detects person at door + package → photo + alert",
+                        "WeChat / Telegram",
+                        "Private or Family group chat"
+                    ],
+                    [
+                        "Kid's Device Bedtime",
+                        "Bot confirms when AdGuard blocks device at set time — peace of mind",
+                        "WeChat / Telegram",
+                        "Family group chat"
+                    ],
+                    [
+                        "Visitor Intercom",
+                        "Doorbell ring → photo → reply /unlock to release door",
+                        "WeChat / Telegram",
+                        "Private only. /unlock must be scoped to specific User IDs."
                     ]
                 ]
             },
@@ -1962,29 +2250,64 @@ const PLAN_DATA = [
                 "type": "table",
                 "headers": [
                     "Task",
-                    "Hermes Implementation",
-                    "Recommended Platform"
+                    "Hermes / n8n Implementation",
+                    "Recommended Platform",
+                    "Server Scope"
                 ],
                 "rows": [
                     [
                         "Docker Health",
                         "Weekly summary of running vs. stopped containers",
-                        "Telegram"
+                        "Telegram",
+                        "Private Telegram only"
                     ],
                     [
                         "Backup Success",
-                        "Ntfy → Telegram confirmation after Rclone sync to B2",
-                        "Telegram"
+                        "ntfy → Telegram confirmation after Rclone sync to B2",
+                        "Telegram",
+                        "Private Telegram only"
                     ],
                     [
                         "SSL Expiry Watch",
                         "30-day warning before Let's Encrypt certificates expire",
-                        "Discord"
+                        "Discord",
+                        "Private server — #infra-alerts, your user only"
                     ],
                     [
                         "CPU/Temp Spikes",
-                        "Alert if Tower workstation exceeds 90C during AI training",
-                        "Telegram"
+                        "Alert if Tower workstation exceeds 90C during AI workload",
+                        "Telegram",
+                        "Private Telegram only"
+                    ],
+                    [
+                        "ZFS Health Alerts",
+                        "Real-time push if a drive in the NAS pool shows checksum errors",
+                        "Telegram",
+                        "Private Telegram only — act on this immediately"
+                    ],
+                    [
+                        "Container Update Available",
+                        "Watchtower or Diun detects new image tag — bot asks if you want to pull",
+                        "Telegram",
+                        "Private Telegram — interactive confirm before auto-pull"
+                    ],
+                    [
+                        "Disk Usage Warning",
+                        "Alert when any volume exceeds 80% — avoids ZFS fragmentation cliff",
+                        "Telegram",
+                        "Private Telegram only"
+                    ],
+                    [
+                        "Failed Login Attempts",
+                        "Fail2ban fires → bot sends IP + country + service targeted",
+                        "Telegram",
+                        "Private Telegram only — security alerts never go to shared servers"
+                    ],
+                    [
+                        "Cert Renewal Confirmation",
+                        "acme.sh renews cert → bot confirms success or failure with domain name",
+                        "Telegram",
+                        "Private Telegram only"
                     ]
                 ]
             },
@@ -1997,23 +2320,39 @@ const PLAN_DATA = [
                 "headers": [
                     "Feature",
                     "Benefit",
-                    "Recommended Platform"
+                    "Recommended Platform",
+                    "Server Scope"
                 ],
                 "rows": [
                     [
                         "Movie Release Watch",
                         "Alert when a Jellyseerr request is ready to watch",
-                        "Discord"
+                        "Discord",
+                        "Family server — #media-ready channel"
                     ],
                     [
                         "TV Airtime Reminders",
                         "Nudge 1 hour before a followed Chinese drama airs",
-                        "Telegram"
+                        "Telegram",
+                        "Private / family group"
                     ],
                     [
                         "Shared Watchlist",
                         "Add to family 'Must Watch' list via simple command",
-                        "Discord"
+                        "Discord",
+                        "Family server — #watchlist channel, family role"
+                    ],
+                    [
+                        "Torrent / Download Complete",
+                        "qBittorrent finishes → bot sends filename + size, prompts Jellyfin rescan",
+                        "Telegram",
+                        "Private Telegram only — not for shared servers"
+                    ],
+                    [
+                        "Currently Watching Feed",
+                        "Jellyfin webhook → Discord embed showing who's watching what (opt-in)",
+                        "Discord",
+                        "Family server — #now-playing channel, fun ambient feed"
                     ]
                 ]
             },
@@ -2026,28 +2365,51 @@ const PLAN_DATA = [
                 "headers": [
                     "Use Case",
                     "Hermes Automation",
-                    "Recommended Platform"
+                    "Recommended Platform",
+                    "Server Scope"
                 ],
                 "rows": [
                     [
-                        "ZFS Health Alerts",
-                        "Real-time push if a drive in the NAS pool shows checksum errors",
-                        "Telegram"
-                    ],
-                    [
                         "NYC DOB Permit Watch",
                         "Monitor your block for new construction filings; summary every Monday",
-                        "Telegram"
+                        "Telegram",
+                        "Private Telegram"
                     ],
                     [
                         "ISP Speed Proof",
-                        "Daily graph of Speedtest results if below 80% of advertised speed",
-                        "Discord"
+                        "Daily graph of Speedtest results; alert if below 80% of advertised speed",
+                        "Discord",
+                        "Private server — #infra-alerts"
                     ],
                     [
                         "UPS Shutdown Warning",
                         "Critical countdown during brownouts before server auto-shutdown",
-                        "Telegram"
+                        "Telegram",
+                        "Private Telegram — act immediately"
+                    ],
+                    [
+                        "NYISO Grid Alert",
+                        "Alert when grid stress exceeds threshold — conserve power or shift AI workloads",
+                        "Telegram",
+                        "Private Telegram"
+                    ],
+                    [
+                        "LL97 Compliance Watch",
+                        "Monthly digest of building energy usage vs LL97 fine thresholds",
+                        "Telegram",
+                        "Private Telegram — owner-only"
+                    ],
+                    [
+                        "Visa / Status Page Watch",
+                        "Changedetection triggers → bot summarizes what changed on the page",
+                        "Telegram",
+                        "Private Telegram only"
+                    ],
+                    [
+                        "MTA Real-Time Disruptions",
+                        "Hermes polls GTFS-RT; alerts if your commute lines are delayed before 8am",
+                        "Telegram",
+                        "Private / family group"
                     ]
                 ]
             },
@@ -2060,28 +2422,208 @@ const PLAN_DATA = [
                 "headers": [
                     "Feature",
                     "Benefit for Parents",
-                    "Recommended Platform"
+                    "Recommended Platform",
+                    "Server Scope"
                 ],
                 "rows": [
                     [
                         "Smart Plug Energy Report",
                         "Monthly summary of how much the AC or Heater cost in RMB/USD",
-                        "Telegram"
+                        "Telegram",
+                        "Family group chat"
                     ],
                     [
                         "Grocery Sync",
                         "Add items to Mealie list via simple voice note or text",
-                        "Telegram"
+                        "Telegram",
+                        "Family group — Whisper transcription handles voice notes"
                     ],
                     [
                         "Photo Flashback",
                         "Daily 'On this day' highlight from Immich shared library",
-                        "Telegram"
+                        "Telegram",
+                        "Family group chat — personal photos never go to Discord"
                     ],
                     [
                         "Intercom Broadcast",
                         "Text-to-speech announcement on all floor speakers via bot",
-                        "Discord"
+                        "Discord",
+                        "Family server — #intercom channel, family role only"
+                    ],
+                    [
+                        "Transit Alerts",
+                        "Daily morning push if local subway/bus lines have delays before commute",
+                        "Telegram",
+                        "Private / family group"
+                    ],
+                    [
+                        "Medicine Reminder",
+                        "Scheduled Telegram message at set times — useful for elderly parents",
+                        "Telegram",
+                        "Direct message to family member's Telegram"
+                    ],
+                    [
+                        "Bill Due Reminder",
+                        "Cron-based push 3 days before rent, utilities, or card due dates",
+                        "Telegram",
+                        "Private Telegram — financial data stays off shared servers"
+                    ]
+                ]
+            },
+            {
+                "type": "h3",
+                "content": "AI & Productivity Agents"
+            },
+            {
+                "type": "table",
+                "headers": [
+                    "Feature",
+                    "Benefit & Capabilities",
+                    "Recommended Platform",
+                    "Server Scope"
+                ],
+                "rows": [
+                    [
+                        "Document Summarizer",
+                        "Drop a PDF/URL, get a concise summary — large context API model handles long docs",
+                        "Telegram",
+                        "Private Telegram — documents are sensitive"
+                    ],
+                    [
+                        "Receipt Parsing",
+                        "Photo of receipt → Vision model extracts total and syncs to expense tracker",
+                        "Telegram",
+                        "Private Telegram only"
+                    ],
+                    [
+                        "Voice Note Transcriber",
+                        "Send audio recording → Whisper transcription → action items extracted",
+                        "Telegram",
+                        "Private / family group"
+                    ],
+                    [
+                        "Fridge Recipe Generator",
+                        "Photo of open fridge → local Vision model → 3 recipe ideas from available items",
+                        "Telegram",
+                        "Family group"
+                    ],
+                    [
+                        "Coding Assistant Gateway",
+                        "Quick code snippets, regex, or SQL via bot — no data leaves your server",
+                        "Discord",
+                        "Private server — #dev channel, your user only"
+                    ],
+                    [
+                        "Git Commit Summarizer",
+                        "Push to Forgejo → bot posts plain-English summary of what changed to your channel",
+                        "Discord",
+                        "Private server — #dev-log channel"
+                    ],
+                    [
+                        "Web Clip to Notes",
+                        "Send a URL → bot fetches, summarizes, and saves to SilverBullet via API",
+                        "Telegram",
+                        "Private Telegram"
+                    ],
+                    [
+                        "Language Drill Bot",
+                        "Daily Mandarin sentence via bot — quiz-style with reply to check your answer",
+                        "Telegram",
+                        "Private Telegram or family group"
+                    ],
+                    [
+                        "Personal CRM & Gift Assistant",
+                        "Syncs with contacts/notes to recommend gifts based on past purchases and sends reminders before birthdays",
+                        "Telegram / Discord",
+                        "Private server or direct message only"
+                    ]
+                ]
+            },
+            {
+                "type": "h3",
+                "content": "Tenant-Facing Bot (Separate Token, Isolated)"
+            },
+            {
+                "type": "p",
+                "content": "If you're running a multi-tenant building, give tenants their own completely separate bot — different token, different server, no connection to your personal infrastructure. It should be read-only where possible, and any write actions (submitting a maintenance request) should write to a queue you review, not trigger anything automatically."
+            },
+            {
+                "type": "table",
+                "headers": [
+                    "Feature",
+                    "What Tenants Can Do",
+                    "What They Cannot Do"
+                ],
+                "rows": [
+                    [
+                        "Laundry Status",
+                        "Query whether machines are in use (HA sensor)",
+                        "Control any devices"
+                    ],
+                    [
+                        "Package Notification",
+                        "Get alerted when a package is detected at their unit's camera zone",
+                        "View other tenants' alerts or cameras"
+                    ],
+                    [
+                        "Maintenance Request",
+                        "Submit a request via /request — goes to your review queue in Plane",
+                        "Execute anything directly"
+                    ],
+                    [
+                        "Building Notice",
+                        "Receive broadcast from you (e.g. water shutoff, inspection date)",
+                        "Send broadcasts"
+                    ],
+                    [
+                        "Lease / Document Fetch",
+                        "Bot DMs them their lease PDF from a scoped Nextcloud share",
+                        "Access any other files"
+                    ]
+                ]
+            },
+            {
+                "type": "h3",
+                "content": "Bot Security Checklist"
+            },
+            {
+                "type": "p",
+                "content": "A Telegram bot with homelab command access is a privileged target — it can restart containers, control smart home devices, or expose camera feeds. Treat it like any other credential."
+            },
+            {
+                "type": "table",
+                "headers": [
+                    "Risk",
+                    "Mitigation"
+                ],
+                "rows": [
+                    [
+                        "Leaked Telegram bot token",
+                        "Set ALLOWED_USERS to your Telegram numeric user ID. A stranger with the token gets nothing without being whitelisted."
+                    ],
+                    [
+                        "Command executed by wrong user in Discord",
+                        "Use Discord permission overwrites per-channel. Never rely on command names alone — check role in code."
+                    ],
+                    [
+                        "Bot token stored in .env committed to git",
+                        "Store all tokens in Vaultwarden. Pull via environment injection at container start, never hardcode."
+                    ],
+                    [
+                        "Shared server exposure",
+                        "Never register destructive commands (restart, shutdown, /cam) in any shared server. Private server or Telegram only."
+                    ],
+                    [
+                        "Alert fatigue causing you to ignore real alerts",
+                        "Configure quiet hours (midnight–7am) for non-critical alerts. Bundle repeat alerts — 5 restarts = 1 message, not 5."
+                    ],
+                    [
+                        "Family member account compromised",
+                        "Scope family commands to read-only. /lights and /laundry yes, /docker and /cam no."
+                    ],
+                    [
+                        "Tenant bot token reused",
+                        "Tenant bot must be a completely separate app registration with its own token. Never share tokens across contexts."
                     ]
                 ]
             }
@@ -2102,7 +2644,7 @@ const PLAN_DATA = [
                 ],
                 "rows": [
                     [
-                        "<a href=\"https://github.com/fosrl/pangolin\" target=\"_blank\">Pangolin + Newt</a>",
+                        "<a href=\"https://github.com/fosrl/pangolin\" target=\"_blank\">Pangolin</a> + <a href=\"https://github.com/fosrl/newt\" target=\"_blank\">Newt</a>",
                         "Network / Infra",
                         "5/10",
                         "Replace Cloudflare Tunnels. Self-hosted tunneled reverse proxy with auth, auto-SSL, and no video traffic restrictions. The right choice once you're exposing Jellyfin externally.",
@@ -2144,7 +2686,7 @@ const PLAN_DATA = [
                         "Use CSS selectors to target specific page elements to avoid false positives from ad content."
                     ],
                     [
-                        "<a href=\"https://forgejo.org/\" target=\"_blank\">Gitea / Forgejo</a>",
+                        "<a href=\"https://gitea.io/\" target=\"_blank\">Gitea</a> / <a href=\"https://forgejo.org/\" target=\"_blank\">Forgejo</a>",
                         "Dev",
                         "4/10",
                         "Self-hosted GitHub. Private repos for React projects, homelab configs, family scripts.",
@@ -2200,7 +2742,7 @@ const PLAN_DATA = [
                         "Occasionally breaks when Google updates their frontend."
                     ],
                     [
-                        "<a href=\"https://openwebui.com/\" target=\"_blank\">Open-WebUI + OpenRouter</a>",
+                        "<a href=\"https://openwebui.com/\" target=\"_blank\">Open-WebUI</a> + <a href=\"https://openrouter.ai/\" target=\"_blank\">OpenRouter</a>",
                         "AI",
                         "4/10",
                         "ChatGPT replacement. Routes to Claude/GPT-4o at API prices. Supports Mandarin natively. Kimi API works here too.",
@@ -2242,14 +2784,14 @@ const PLAN_DATA = [
                         "Do not use PostHog — it will eat your 16GB RAM."
                     ],
                     [
-                        "Hermes Agent",
+                        "<a href=\"https://github.com/NousResearch/hermes-agent\" target=\"_blank\">Hermes Agent</a>",
                         "AI / Automation",
                         "5/10",
                         "Persistent self-improving AI agent that lives on your server. Connects to Telegram, Discord. Builds reusable skills over time. See the Hermes section above.",
                         "Start with OpenRouter or Kimi API. Run in Docker with limited permissions."
                     ],
                     [
-                        "Multica",
+                        "<a href=\"https://github.com/multica-ai/multica\" target=\"_blank\">Multica</a>",
                         "Dev / Agentic",
                         "5/10",
                         "Kanban board where AI coding agents are real teammates. Assign tasks to Claude Code or Codex; they pick up work overnight and report back.",
@@ -2270,7 +2812,7 @@ const PLAN_DATA = [
                         "Respects yt-dlp rate limits. Storage-hungry — needs NAS soon."
                     ],
                     [
-                        "<a href=\"https://opendata.cityofnewyork.us/\" target=\"_blank\">NYC 311 / DOB scrapers</a>",
+                        "<a href=\"https://opendata.cityofnewyork.us/\" target=\"_blank\">NYC 311</a> / DOB scrapers",
                         "NYC / Civic",
                         "5/10",
                         "Python scripts polling 311 Open Data and DOB NOW portal for your address. Know about HPD filings before formal notification.",
@@ -2374,56 +2916,56 @@ const PLAN_DATA = [
                 ],
                 "rows": [
                     [
-                        "Immich (full)",
+                        "<a href=\"https://immich.app/\" target=\"_blank\">Immich (full)</a>",
                         "Family / Photos",
                         "4/10",
                         "Full family photo library on NAS. Face recognition, location maps, memory highlights.",
                         "Initial bulk sync generates heat. Run overnight."
                     ],
                     [
-                        "Bazarr + Whisper AI",
+                        "<a href=\"https://www.bazarr.media/\" target=\"_blank\">Bazarr + Whisper AI</a>",
                         "Family / Media",
                         "6/10",
                         "Auto-generates Chinese subtitles for English Jellyfin content. Entirely local.",
                         "A 2-hour movie takes 30+ minutes on CPU. Run as batch job."
                     ],
                     [
-                        "Syncthing",
+                        "<a href=\"https://syncthing.net/\" target=\"_blank\">Syncthing</a>",
                         "Storage / Sync",
                         "3/10",
                         "Encrypted peer-to-peer file sync between devices and NAS.",
                         "Not a backup — syncs deletions. Still need Proxmox Backup Server for versioned backups."
                     ],
                     [
-                        "Proxmox Backup Server",
+                        "<a href=\"https://proxmox.com/en/proxmox-backup-server/overview\" target=\"_blank\">Proxmox Backup Server</a>",
                         "Backup",
                         "5/10",
                         "Block-level incremental VM snapshots with deduplication. NAS is the backup target.",
                         "Test restore drills monthly. An untested backup is not a backup."
                     ],
                     [
-                        "LanCache (full deployment)",
+                        "<a href=\"https://lancache.net/\" target=\"_blank\">LanCache (full deployment)</a>",
                         "Gaming / Network",
                         "3/10",
                         "Full game download cache with NAS storage. First download is from internet; all subsequent downloads are local at 10Gbps.",
                         "Needs the NAS for adequate storage (1–4TB cache target)."
                     ],
                     [
-                        "Grafana + InfluxDB",
+                        "<a href=\"https://grafana.com/\" target=\"_blank\">Grafana</a> + <a href=\"https://www.influxdata.com/\" target=\"_blank\">InfluxDB</a>",
                         "Monitoring",
                         "5/10",
                         "Time-series dashboards for grid stress, server power, building temps, network traffic, disk health.",
                         "Wait for NAS storage — InfluxDB writes constantly. Uptime Kuma covers monitoring needs until then."
                     ],
                     [
-                        "LibreSpeed multi-floor",
+                        "<a href=\"https://librespeed.org/\" target=\"_blank\">LibreSpeed multi-floor</a>",
                         "Fun / Monitoring",
                         "4/10",
                         "Self-hosted speed test server. Pi Zero 2W agents on each floor test every 30 min. Grafana dashboard shows download/upload/ping per floor over time.",
                         "Pi Zero 2W agents at ~$15 each. Reveals Wi-Fi dead zones and AP placement needs."
                     ],
                     [
-                        "Kavita",
+                        "<a href=\"https://www.kavitareader.com/\" target=\"_blank\">Kavita</a>",
                         "Media / Books",
                         "3/10",
                         "Comic, manga, and novel server pointing at NAS storage.",
@@ -2444,7 +2986,7 @@ const PLAN_DATA = [
                         "Keep log retention to 30–90 days or logs eat NAS storage."
                     ],
                     [
-                        "<a href=\"https://rclone.org/\" target=\"_blank\">Rclone + Backblaze B2</a>",
+                        "<a href=\"https://rclone.org/\" target=\"_blank\">Rclone</a> + <a href=\"https://www.backblaze.com/cloud-storage\" target=\"_blank\">Backblaze B2</a>",
                         "Backup",
                         "4/10",
                         "Encrypted off-site backup of NAS to Backblaze B2 — the 3rd copy in the 3-2-1 strategy.",
@@ -2539,14 +3081,14 @@ const PLAN_DATA = [
                         "Unusable on CPU only. Use OpenRouter API until the tower is ready."
                     ],
                     [
-                        "<a href=\"https://moonlight-stream.org/\" target=\"_blank\">Sunshine + Moonlight</a>",
+                        "<a href=\"https://github.com/LizardByte/Sunshine\" target=\"_blank\">Sunshine</a> + <a href=\"https://moonlight-stream.org/\" target=\"_blank\">Moonlight</a>",
                         "Gaming / Fun",
                         "5/10",
                         "Game streaming from tower to any screen. Play PC games on the living room TV at sub-10ms latency.",
                         "NVIDIA GameReady driver for NVENC. Quality degrades on WiFi — wire the host machine."
                     ],
                     [
-                        "<a href=\"https://openai.com/research/whisper\" target=\"_blank\">Whisper + Speaker Diarization</a>",
+                        "<a href=\"https://github.com/openai/whisper\" target=\"_blank\">Whisper</a> + Speaker Diarization",
                         "Family / AI",
                         "6/10",
                         "Transcribe and identify speakers in family video call recordings or meeting audio. Chinese diarization supported.",
@@ -2560,7 +3102,7 @@ const PLAN_DATA = [
                         "Run in an isolated VM with no network access to production services. Never give it production credentials."
                     ],
                     [
-                        "<a href=\"https://pterodactyl.io/\" target=\"_blank\">Pterodactyl + Minecraft</a>",
+                        "<a href=\"https://pterodactyl.io/\" target=\"_blank\">Pterodactyl</a> + <a href=\"https://www.minecraft.net/\" target=\"_blank\">Minecraft</a>",
                         "Gaming / Fun",
                         "6/10",
                         "Game server management panel. Minecraft benefits from the tower's high single-thread clock speed.",
@@ -2658,7 +3200,7 @@ const PLAN_DATA = [
                         "All participants need a Jellyfin account. Bandwidth scales with simultaneous streams."
                     ],
                     [
-                        "Wakapi + Grafana leaderboard",
+                        "<a href=\"https://wakapi.dev/\" target=\"_blank\">Wakapi</a> + <a href=\"https://grafana.com/\" target=\"_blank\">Grafana</a> leaderboard",
                         "Dev / Fun",
                         "4/10",
                         "Import coding time data into Grafana. Streak tracking, language breakdown, weekly comparison.",
@@ -2672,14 +3214,14 @@ const PLAN_DATA = [
                         "Pair with a Kasa plug for emergency remote power cutoff via Home Assistant."
                     ],
                     [
-                        "Multiplayer game server (Valheim/Terraria)",
+                        "<a href=\"https://pterodactyl.io/\" target=\"_blank\">Multiplayer game server (Valheim/Terraria)</a>",
                         "Gaming / Fun",
                         "6/10",
                         "Dedicated game server for friends. Valheim and Terraria are single-threaded — high clock speed beats core count.",
                         "Route traffic through Pangolin. Valheim needs 4–6GB RAM; Terraria 1–2GB."
                     ],
                     [
-                        "Penpot (design collab)",
+                        "<a href=\"https://penpot.app/\" target=\"_blank\">Penpot (design collab)</a>",
                         "Dev / Creative",
                         "5/10",
                         "Share Figma-like design files with developer friends. Component handoff, collaborative UI work.",
@@ -2687,12 +3229,6 @@ const PLAN_DATA = [
                     ]
                 ]
             },
-            {
-                "type": "note",
-                "title": "NOTE — ComfyUI Removed:",
-                "content": "ComfyUI (Stable Diffusion) has been removed from this plan. The GPU resource contention with Ollama, the complexity of model management, and the limited general-use value for a family homelab make it poor ROI. If you specifically want image generation, ComfyUI is excellent — but set up Ollama and LLM inference first, and add it as a separate optional project.",
-                "level": "warning"
-            }
         ]
     },
     {

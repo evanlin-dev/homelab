@@ -193,12 +193,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     el.rows.forEach(row => {
                         const tr = document.createElement('tr');
                         
-                        // Row Severity Logic - Only check column if header matches Severity or Difficulty
+                        // Row Severity Logic - Only check column if header matches Severity or Risk
                         let rowSeverity = null;
-                        const severityColIdx = el.headers ? el.headers.findIndex(h => {
-                            const lowH = h.toLowerCase();
-                            return lowH.includes('severity') || lowH.includes('difficulty');
-                        }) : -1;
+                        const severityColIdx = el.headers ? (() => {
+                            const lowHeaders = el.headers.map(h => h.toLowerCase());
+                            const sevIdx = lowHeaders.findIndex(h => h.includes('severity'));
+                            if (sevIdx !== -1) return sevIdx;
+                            return lowHeaders.findIndex(h => h.includes('risk'));
+                        })() : -1;
 
                         if (severityColIdx !== -1) {
                             const cell = row[severityColIdx];
@@ -269,17 +271,52 @@ document.addEventListener('DOMContentLoaded', () => {
         container.appendChild(sectionEl);
     });
     
-    // Intersection Observer
+    // Intersection Observer for Sidebar Highlighting
+    const visibleSections = new Set();
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
-                const id = entry.target.id;
-                document.querySelectorAll('#toc a').forEach(a => {
-                    a.classList.remove('active');
-                    if (a.getAttribute('href') === `#${id}`) a.classList.add('active');
-                });
+                visibleSections.add(entry.target.id);
+            } else {
+                visibleSections.delete(entry.target.id);
             }
         });
-    }, { threshold: 0.2 });
+
+        // Find the section closest to the top among visible ones
+        let activeId = null;
+        let minTop = Infinity;
+
+        visibleSections.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                const rect = el.getBoundingClientRect();
+                // We prefer sections that are near the top of the viewport
+                const top = Math.abs(rect.top - 100); 
+                if (top < minTop) {
+                    minTop = top;
+                    activeId = id;
+                }
+            }
+        });
+
+        if (activeId) {
+            document.querySelectorAll('#toc a').forEach(a => {
+                a.classList.remove('active');
+                if (a.getAttribute('href') === `#${activeId}`) {
+                    a.classList.add('active');
+                    // Ensure the active link is visible in the sidebar
+                    const navGroup = a.closest('.nav-group');
+                    if (navGroup && !navGroup.classList.contains('open')) {
+                        navGroup.classList.add('open');
+                        const toggle = navGroup.querySelector('.toggle-icon');
+                        if (toggle) toggle.textContent = '▾';
+                    }
+                }
+            });
+        }
+    }, { 
+        rootMargin: '-10% 0px -70% 0px', // Target the upper part of the screen
+        threshold: 0 
+    });
     document.querySelectorAll('section').forEach(section => observer.observe(section));
 });
