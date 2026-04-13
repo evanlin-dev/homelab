@@ -358,6 +358,151 @@ const PLAN_DATA = [
             },
             {
                 "type": "h2",
+                "content": "The Ubuntu + Proxmox Path: Creating Your Primary Docker VM"
+            },
+            {
+                "type": "p",
+                "content": "Instead of running services in individual containers, we are creating one robust **Ubuntu Server VM** to act as a Docker hub. This is the 'Gold Standard' for learning and reliability."
+            },
+            {
+                "type": "table",
+                "headers": [
+                    "Resource",
+                    "Allocation",
+                    "Reasoning"
+                ],
+                "rows": [
+                    [
+                        "CPU Cores",
+                        "2 Cores (Type: host)",
+                        "Enough for 30+ containers. Keeping it at 2 ensures the Proxmox host stays responsive. 'Host' type allows the VM to use your i5's full instruction set."
+                    ],
+                    [
+                        "Memory (RAM)",
+                        "4096 MiB (4GB)",
+                        "Docker is very efficient. 4GB can handle Paperless, Home Assistant, and 10 other apps with ease. Proxmox makes it easy to increase this in 5 seconds later."
+                    ],
+                    [
+                        "Disk Space",
+                        "100 GB (SSD Emulation)",
+                        "Gives you 90GB+ for documents and app data. SSD Emulation tells the VM it is on high-speed storage, improving performance."
+                    ],
+                    [
+                        "OS Type",
+                        "Ubuntu 24.04 Server (Headless)",
+                        "No GUI = less RAM usage. 99% of Docker tutorials are written for Ubuntu, making troubleshooting much easier."
+                    ],
+                    [
+                        "The 'Safety Net'",
+                        "Snapshots",
+                        "The #1 reason for a VM. Take a snapshot before updates. If you break it, hit 'Rollback' to fix it instantly."
+                    ]
+                ]
+            },
+            {
+                "type": "h2",
+                "content": "Step-by-Step: Ubuntu VM Installation"
+            },
+            {
+                "type": "table",
+                "headers": [
+                    "Installation Step",
+                    "The Right Choice",
+                    "Technical Reasoning"
+                ],
+                "rows": [
+                    [
+                        "Type of Install",
+                        "Ubuntu Server (standard)",
+                        "Provides all standard system tools. Avoid 'Minimized' for your first build to make manual troubleshooting easier."
+                    ],
+                    [
+                        "Storage Configuration",
+                        "Uncheck 'Set up this disk as an LVM group'",
+                        "Standard partitions are easier to manage and resize for beginners. LVM adds a layer of abstraction that often leads to 'missing disk space' confusion later."
+                    ],
+                    [
+                        "SSH Setup",
+                        "Check 'Install OpenSSH Server'",
+                        "Mandatory for remote access. Allows you to manage the server from your laptop terminal instead of the Proxmox web console."
+                    ],
+                    [
+                        "Featured Server Snaps",
+                        "Do not select any",
+                        "Keeping the OS 'clean' is better for stability. We will install Docker manually to ensure we have the official, most up-to-date versions."
+                    ],
+                    [
+                        "DHCP Reservation",
+                        "Lock the VM's IP in the router",
+                        "Just like the Proxmox host, your Docker VM needs a permanent address. Use the Asus router's 'Manual Assignment' for 192.168.50.65."
+                    ]
+                ]
+            },
+            {
+                "type": "h2",
+                "content": "Step-by-Step: Post-Install Hardening & Docker"
+            },
+            {
+                "type": "table",
+                "headers": [
+                    "Task",
+                    "Command",
+                    "Why it matters"
+                ],
+                "rows": [
+                    [
+                        "System Updates",
+                        "<code>sudo apt update && sudo apt upgrade -y</code>",
+                        "Ensures your VM has the latest security patches from Ubuntu."
+                    ],
+                    [
+                        "Guest Agent",
+                        "<code>sudo apt install qemu-guest-agent -y</code>",
+                        "Essential 'bridge' between Proxmox and Ubuntu. Allows Proxmox to see the VM's IP and handle safe shutdowns."
+                    ],
+                    [
+                        "Docker Engine",
+                        "<code>curl -fsSL https://get.docker.com -o get-docker.sh && sudo sh get-docker.sh</code>",
+                        "The actual engine that will run Paperless-ngx and all other services."
+                    ],
+                    [
+                        "Docker Permissions",
+                        "<code>sudo usermod -aG docker $USER</code>",
+                        "Allows you to manage containers without needing 'sudo' every time. Much safer and standard for dev work."
+                    ],
+                    [
+                        "Portainer GUI",
+                        "<code>docker run -d -p 9443:9443 --name portainer --restart=always -v /var/run/docker.sock:/var/run/docker.sock -v portainer_data:/data portainer/portainer-ce:2.21.5</code>",
+                        "Installs the web-based 'Control Panel' for Docker. Allows you to manage Paperless-ngx and other apps via a browser instead of the terminal."
+                    ]
+                ]
+            },
+            {
+                "type": "h2",
+                "content": "Accessing Your Homelab Dashboard"
+            },
+            {
+                "type": "table",
+                "headers": [
+                    "Tool",
+                    "URL",
+                    "Purpose"
+                ],
+                "rows": [
+                    [
+                        "Proxmox (The Boss)",
+                        "<code>https://192.168.50.188:8006</code>",
+                        "Hardware and VM management. Use for snapshots, reboots, and backups."
+                    ],
+                    [
+                        "Portainer (The Worker)",
+                        "<code>https://192.168.50.65:9443</code>",
+                        "Docker App management. Use for installing Paperless-ngx, checking logs, and starting/stopping services."
+                    ]
+                ]
+            },
+            {
+                "type": "h2",
                 "content": "Getting Started: Your First 30 Minutes on the Server"
             },
             {
@@ -6921,8 +7066,8 @@ const PLAN_DATA = [
                         "Twitter-style quick capture for thoughts, links, code snippets mid-session. Feed refined versions to SilverBullet."
                     ],
                     [
-                        "BookStack (family wiki)",
-                        "Shared household knowledge written for non-technical family members. SilverBullet is for you; BookStack is for everyone."
+                        "Wiki.js (homelab wiki)",
+                        "OFFICIALLY LIVE. Access at http://192.168.50.65:3000. Modern, folder-based documentation hub with native Chinese/English toggles. Replaces BookStack for better family usability."
                     ],
                     [
                         "Hermes Agent (AI refinement)",
