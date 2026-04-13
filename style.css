@@ -1,0 +1,255 @@
+:root {
+    --primary: #2c3e50;
+    --accent: #3498db;
+    --sidebar-bg: #f8f9fa;
+    --border: #e1e4e8;
+    --text: #24292e;
+    --bg: #ffffff;
+    --table-header-bg: #f6f8fa;
+    --table-row-even: #fafbfc;
+    --nav-group-bg: #f0f0f0;
+    --nav-group-hover: #e8e8e8;
+    
+    --note-bg: #e7f3ff;
+    --note-text: #00529b;
+    --note-border: #b8daff;
+    
+    --critical-bg: #fdecea;
+    --critical-text: #b71c1c;
+    --critical-border: #f5c6cb;
+    
+    --warning-bg: #fff8e1;
+    --warning-text: #856404;
+    --warning-border: #ffeeba;
+}
+
+[data-theme="dark"] {
+    --primary: #ecf0f1;
+    --accent: #3498db;
+    --sidebar-bg: #1a1a1a;
+    --border: #333;
+    --text: #d1d1d1;
+    --bg: #121212;
+    --table-header-bg: #1e1e1e;
+    --table-row-even: #1a1a1a;
+    --nav-group-bg: #222;
+    --nav-group-hover: #2a2a2a;
+    
+    --note-bg: #002d5e;
+    --note-text: #e7f3ff;
+    --note-border: #00529b;
+    
+    --critical-bg: #4c0000;
+    --critical-text: #fdecea;
+    --critical-border: #b71c1c;
+    
+    --warning-bg: #332b00;
+    --warning-text: #fff8e1;
+    --warning-border: #856404;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.6;
+    color: var(--text);
+    background-color: var(--bg);
+    transition: background-color 0.3s, color 0.3s;
+}
+
+#app { 
+    display: flex; 
+    min-height: 100vh;
+    align-items: stretch;
+}
+
+#sidebar {
+    width: 320px;
+    height: 100vh;
+    overflow-y: auto;
+    background-color: var(--sidebar-bg);
+    border-right: 1px solid var(--border);
+    padding: 3rem 0.75rem 1.5rem; /* Increased top padding to 3rem */
+    position: sticky;
+    top: 0;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    z-index: 1000;
+}
+
+#sidebar header {
+    margin-bottom: 2rem;
+    padding-right: 40px;
+    position: relative;
+}
+
+#sidebar header h1 {
+    font-size: 1.25rem;
+    color: var(--primary);
+    margin-bottom: 0.25rem;
+    line-height: 1.2;
+}
+.theme-toggle {
+    position: absolute;
+    top: 4px; /* Slight nudge to align with middle of h1's first line */
+    right: 0;
+    width: 32px;
+    height: 32px;
+...
+    background: var(--nav-group-bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.theme-toggle:hover {
+    background: var(--nav-group-hover);
+    transform: scale(1.1);
+}
+
+/* Severity Row Coloring */
+tr.severity-critical { background-color: var(--critical-bg) !important; color: var(--critical-text); }
+tr.severity-warning { background-color: var(--warning-bg) !important; color: var(--warning-text); }
+
+/* Ensure links in colored rows are readable */
+tr.severity-critical td a { color: var(--critical-text); text-decoration: underline; }
+tr.severity-warning td a { color: var(--warning-text); text-decoration: underline; }
+
+
+.theme-toggle:hover {
+    background: var(--nav-group-hover);
+    transform: scale(1.1);
+}
+
+.nav-root { 
+    list-style: none; 
+    margin: 1rem 0 0 0 !important;
+    padding: 0 !important;
+}
+
+.nav-group { margin-bottom: 0.5rem; }
+
+.group-title {
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: var(--text);
+    padding: 10px 12px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 6px;
+    background: var(--nav-group-bg);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border: 1px solid transparent;
+    transition: all 0.2s;
+}
+
+.group-title:hover { 
+    background: var(--nav-group-hover);
+    border-color: var(--border);
+}
+
+.nav-children {
+    list-style: none;
+    margin: 0.25rem 0 0 0.5rem !important;
+    padding: 0 !important;
+    border-left: 2px solid var(--border);
+    display: none;
+}
+
+.nav-group.open > .nav-children { display: block; }
+
+.nested .group-title {
+    background: transparent;
+    text-transform: none;
+    font-weight: 600;
+    padding: 6px 12px;
+    font-size: 0.8rem;
+}
+
+#toc a {
+    text-decoration: none;
+    color: var(--text);
+    font-size: 0.8rem;
+    display: block;
+    padding: 6px 12px;
+    border-radius: 4px;
+    transition: all 0.2s;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    opacity: 0.8;
+}
+
+#toc a:hover { background-color: var(--nav-group-hover); color: var(--accent); opacity: 1; }
+#toc a.active { background-color: var(--accent); color: white; font-weight: 600; opacity: 1; }
+
+#content {
+    flex-grow: 1;
+    padding: 3rem 4rem;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+section { margin-bottom: 5rem; }
+
+h1 {
+    font-size: 2rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--border);
+}
+
+h2 { font-size: 1.5rem; margin: 2rem 0 1rem; color: var(--primary); }
+h3 { font-size: 1.15rem; margin: 1.5rem 0 0.75rem; }
+p { margin-bottom: 1rem; }
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.5rem 0;
+    font-size: 0.85rem;
+}
+
+th, td { border: 1px solid var(--border); padding: 10px; text-align: left; }
+th { background-color: var(--table-header-bg); font-weight: 600; }
+tr:nth-child(even) { background-color: var(--table-row-even); }
+
+td a { color: var(--accent); text-decoration: none; font-weight: 500; }
+td a:hover { text-decoration: underline; }
+
+.note, .critical, .warning {
+    padding: 1rem 1.5rem;
+    border-radius: 6px;
+    border-left: 5px solid;
+    margin: 1.5rem 0;
+}
+
+.note { background: var(--note-bg); border-color: var(--note-border); color: var(--note-text); }
+.critical { background: var(--critical-bg); border-color: var(--critical-border); color: var(--critical-text); }
+.warning { background: var(--warning-bg); border-color: var(--warning-border); color: var(--warning-text); }
+
+.note h4, .critical h4, .warning h4 { margin-bottom: 0.5rem; font-size: 1rem; text-transform: uppercase; }
+
+/* Target only content lists for margins */
+#content ul, #content ol {
+    margin: 0 0 1rem 2rem;
+}
+
+li { margin-bottom: 0.4rem; }
+
+@media (max-width: 1024px) {
+    #app { flex-direction: column; }
+    #sidebar { width: 100%; height: auto; position: static; border-right: none; border-bottom: 1px solid var(--border); }
+    #content { padding: 2rem; }
+}
