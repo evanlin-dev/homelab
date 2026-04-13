@@ -1121,6 +1121,12 @@ const PLAN_DATA = [
                         "12U open-frame wall-mount or IKEA LACK stack",
                         "~$20–150",
                         "Turns a pile of hardware into a server room. Improves airflow and maintenance access."
+                    ],
+                    [
+                        "Document Scanner",
+                        "Brother ADS-1700W or Fujitsu ScanSnap iX1600",
+                        "~$250–450",
+                        "Essential for a truly paperless home. These models support direct scan-to-network-folder for automation. Check the <a href=\"https://github.com/paperless-ngx/paperless-ngx/wiki/Scanner-&-Software-Recommendations\" target=\"_blank\">official wiki</a> for more models."
                     ]
                 ]
             },
@@ -1734,7 +1740,7 @@ const PLAN_DATA = [
                         "Productivity",
                         "3/10",
                         "Document management with OCR. Scan and index important household papers in searchable Mandarin and English.",
-                        "Install Simplified Chinese OCR packs immediately."
+                        "Install Simplified Chinese OCR packs immediately. Use Brother MFC-L2710DW with 'Scan to Network' (SMB) to the consume folder. For double-sided docs: use Paperless-ngx's 'double-sided' folder or a script to merge two separate scans of front and back. Check the <a href=\"https://github.com/paperless-ngx/paperless-ngx/wiki/Scanner-&-Software-Recommendations\" target=\"_blank\">official recommendations</a> for more scanner hardware."
                     ],
                     [
                         "<a href=\"https://github.com/ll931217/Wallos\" target=\"_blank\">Wallos</a>",
@@ -2541,49 +2547,6 @@ const PLAN_DATA = [
             },
             {
                 "type": "h3",
-                "content": "Tenant-Facing Bot (Separate Token, Isolated)"
-            },
-            {
-                "type": "p",
-                "content": "If you're running a multi-tenant building, give tenants their own completely separate bot — different token, different server, no connection to your personal infrastructure. It should be read-only where possible, and any write actions (submitting a maintenance request) should write to a queue you review, not trigger anything automatically."
-            },
-            {
-                "type": "table",
-                "headers": [
-                    "Feature",
-                    "What Tenants Can Do",
-                    "What They Cannot Do"
-                ],
-                "rows": [
-                    [
-                        "Laundry Status",
-                        "Query whether machines are in use (HA sensor)",
-                        "Control any devices"
-                    ],
-                    [
-                        "Package Notification",
-                        "Get alerted when a package is detected at their unit's camera zone",
-                        "View other tenants' alerts or cameras"
-                    ],
-                    [
-                        "Maintenance Request",
-                        "Submit a request via /request — goes to your review queue in Plane",
-                        "Execute anything directly"
-                    ],
-                    [
-                        "Building Notice",
-                        "Receive broadcast from you (e.g. water shutoff, inspection date)",
-                        "Send broadcasts"
-                    ],
-                    [
-                        "Lease / Document Fetch",
-                        "Bot DMs them their lease PDF from a scoped Nextcloud share",
-                        "Access any other files"
-                    ]
-                ]
-            },
-            {
-                "type": "h3",
                 "content": "Bot Security Checklist"
             },
             {
@@ -2620,10 +2583,6 @@ const PLAN_DATA = [
                     [
                         "Family member account compromised",
                         "Scope family commands to read-only. /lights and /laundry yes, /docker and /cam no."
-                    ],
-                    [
-                        "Tenant bot token reused",
-                        "Tenant bot must be a completely separate app registration with its own token. Never share tokens across contexts."
                     ]
                 ]
             }
