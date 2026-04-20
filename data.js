@@ -103,44 +103,24 @@ const PLAN_DATA = [
                         "CPU-only inference today, Ollama model guide, quantization explained, API vs local decision matrix"
                     ],
                     [
-                        "24. Hermes Agent: Your Persistent AI Team Member",
-                        "Setup, use case table (80+ tasks), API vs local guidance, Multica"
+                        "24. AI-Enhanced Notes: Ask AI to Refine or Template",
+                        "SilverBullet AI plugin, note workflows, study prompts"
                     ],
                     [
-                        "25. Hermes: Going Deeper",
-                        "Advanced Hermes workflows, SOUL.md customization, and persistent memory management"
-                    ],
-                    [
-                        "26. Hermes vs Automation Tools: What's Actually Different",
-                        "When to use Hermes, when to use n8n — the real distinction"
-                    ],
-                    [
-                        "27. Hermes for Travel Planning (Wanderlog Style)",
-                        "Using Hermes for flight tracking, itinerary generation, and local discovery"
-                    ],
-                    [
-                        "28. Reddit Discovery Engine (Hermes Automation)",
-                        "Automating content curation, sentiment analysis, and community engagement via Hermes"
-                    ],
-                    [
-                        "29. AI-Enhanced Notes: Ask AI to Refine or Template",
-                        "SilverBullet AI plugin, Hermes note workflows, study prompts"
-                    ],
-                    [
-                        "30. Second Brain: Video, Articles, and AI Knowledge Capture",
+                        "25. Second Brain: Video, Articles, and AI Knowledge Capture",
                         "The Karpathy-style vault workflow adapted for your note structure and local models"
                     ],
                     [
-                        "31. Chinese i18n: Automating Accurate Translations Across All Tools",
+                        "26. Chinese i18n: Automating Accurate Translations Across All Tools",
                         "Native app settings, automated translation pipeline, LibreTranslate, subtitle workflow"
                     ],
                     [
-                        "32. Language Learning with Your Homelab",
-                        "Hermes as Mandarin tutor, Whisper speaking practice, Jellyfin subtitle flip method, custom reading material"
+                        "27. Language Learning with Your Homelab",
+                        "Whisper speaking practice, Jellyfin subtitle flip method, custom reading material"
                     ],
                     [
-                        "33. Personal Knowledge Base + Learning Tracker",
-                        "SilverBullet + Plane + Memos + Hermes combined system"
+                        "28. Personal Knowledge Base + Learning Tracker",
+                        "SilverBullet + Plane + Memos combined system"
                     ],
                     [
                         "34. Wi-Fi Heatmap and Speed Testing",
@@ -2604,322 +2584,6 @@ const PLAN_DATA = [
         ]
     },
     {
-        "id": "hermes-agent-your-persistent-ai-team-member",
-        "title": "Hermes Agent: Your Persistent AI Team Member",
-        "elements": [
-            {
-                "type": "p",
-                "content": "Hermes Agent is an open-source, self-hosted autonomous AI agent built by Nous Research (the lab behind the Hermes model family). Unlike Claude or ChatGPT — which are stateless and forget everything between sessions — Hermes runs persistently on your server, remembers what it learns, builds reusable skills, connects to your messaging apps, and gets more capable the longer it runs. It was released in February 2026 under MIT license and is actively developed."
-            },
-            {
-                "type": "h2",
-                "content": "Multi-Agent Architecture: The 'Wack' Expansion"
-            },
-            {
-                "type": "p",
-                "content": "As your lab grows, a single agent can become cluttered. Running multiple isolated Hermes instances in separate Docker containers allows for specialized personalities and better security."
-            },
-            {
-                "type": "table",
-                "headers": [
-                    "Agent Role",
-                    "Personality/Skill",
-                    "Safety Benefit"
-                ],
-                "rows": [
-                    [
-                        "Hermes-Dev",
-                        "Expert Python & Docker assistant. Access to full shell and logs.",
-                        "Isolated from family data. Can perform destructive restarts."
-                    ],
-                    [
-                        "Hermes-Family",
-                        "Simplified Chinese translator. Grocery & recipe expert.",
-                        "No access to server shell. Safe for parents to use."
-                    ],
-                    [
-                        "Hermes-Finance",
-                        "Strict expense tracker and tax advisor.",
-                        "Encrypted database. Financial data never leaks to other bots."
-                    ]
-                ]
-            },
-            {
-                "type": "h2",
-                "content": "What Hermes Can Do (80+ Tasks)"
-            },
-            {
-                "type": "h3",
-                "content": "Software Development & Admin"
-            },
-            {
-                "type": "table",
-                "headers": [
-                    "Task / Prompt",
-                    "API or Local?",
-                    "How It Works"
-                ],
-                "rows": [
-                    [
-                        "'Scan my homelab Docker containers for security vulnerabilities'",
-                        "API",
-                        "Runs npm audit or checks CVE database. Non-sensitive package names."
-                    ],
-                    [
-                        "'Explain this regex to me'",
-                        "Either",
-                        "Regex explanation is non-sensitive. Either backend works."
-                    ],
-                    [
-                        "'Generate a commit message for these changes'",
-                        "Local preferred",
-                        "Reads your actual code diff. Keep code context local."
-                    ],
-                    [
-                        "'Set up pre-commit hooks for linting and tests'",
-                        "API",
-                        "Generates .pre-commit-config.yaml and setup instructions."
-                    ],
-                    [
-                        "'How should I structure this feature in my PocketBase schema?'",
-                        "API",
-                        "Database schema design guidance. Non-sensitive if you describe abstractly."
-                    ]
-                ]
-            },
-            {
-                "type": "h3",
-                "content": "Family & Building Management"
-            },
-            {
-                "type": "table",
-                "headers": [
-                    "Task / Prompt",
-                    "API or Local?",
-                    "How It Works"
-                ],
-                "rows": [
-                    [
-                        "'Draft a maintenance notice in English and Chinese about the hot water shutoff'",
-                        "API",
-                        "Writes both versions. API (Claude) gives more natural Mandarin — worth the API cost for parent-facing docs."
-                    ],
-                    [
-                        "'Remind me to call the building inspector next Tuesday at 10am'",
-                        "Local",
-                        "Creates a persistent background job. Low logic needed."
-                    ],
-                    [
-                        "'Convert this receipt photo into a budget entry'",
-                        "API",
-                        "Uses vision model (GPT-4o) to extract amount and category from photo. High sensitivity — ensure private storage."
-                    ],
-                    [
-                        "'Translate my mom's voicemail from Chinese to English and summarize'",
-                        "API",
-                        "Whisper for transcription → Claude for translation. Excellent for cross-language household management."
-                    ]
-                ]
-            },
-            {
-                "type": "h2",
-                "content": "Architecture Overview"
-            },
-            {
-                "type": "p",
-                "content": "Hermes follows a 'Hub-and-Spoke' design. The core agent lives in a Docker container and connects to 'Spokes' (API providers, messaging apps, and local tools)."
-            },
-            {
-                "type": "table",
-                "headers": ["Component", "Requirement", "Notes"],
-                "rows": [
-                    ["Agent Core", "Docker container", "The 'brain' where memory and skill logic reside."],
-                    ["Provider", "OpenRouter (API) or Ollama (Local)", "Where the actual LLM inference happens. Start with OpenRouter."],
-                    ["Messaging", "Discord or Telegram", "The primary interface. Create a private Discord server for your bot."],
-                    ["Storage", "SQLite / Vector DB", "Used for long-term memory and RAG (Retrieval Augmented Generation)."]
-                ]
-            },
-            {
-                "type": "h2",
-                "content": "API vs. Local: The Privacy/Performance Trade-off"
-            },
-            {
-                "type": "table",
-                "headers": ["Scenario", "Recommendation", "Reasoning"],
-                "rows": [
-                    ["Development", "API (Claude 3.5)", "Complex reasoning requires the best models. Paying ~$0.01 per prompt saves hours of debugging."],
-                    ["Privacy-First", "Local (Llama 3)", "If you are processing sensitive building records or personal emails, keep it 100% local."],
-                    ["Daily Assistant", "Hybrid", "Use local for simple tasks (reminders, math) and API for nuanced writing/analysis."],
-                    ["Parent-Facing", "API (Qwen / GPT-4o)", "Parents need high accuracy and natural language. Local models on home hardware can feel slow or 'robotic'."]
-                ]
-            },
-            {
-                "type": "note",
-                "title": "IMPORTANT:",
-                "content": "Hermes is an <strong>agent</strong>, not just a model. It has a 'persona' (defined in SOUL.md) and 'tools' (Python scripts it can run). Treat it as a junior developer who works for you 24/7.",
-                "level": "note"
-            }
-        ]
-    },
-    {
-        "id": "hermes-going-deeper",
-        "title": "Hermes: Going Deeper",
-        "elements": [
-            {
-                "type": "h2",
-                "content": "Advanced Hermes Workflows"
-            },
-            {
-                "type": "p",
-                "content": "Beyond simple chat, Hermes can be automated via webhooks. Examples: (1) n8n detects a new building record → pings Hermes to summarize it → Hermes sends you a Telegram. (2) GitHub push → Hermes reviews the code → posts comments on the PR."
-            },
-            {
-                "type": "h2",
-                "content": "SOUL.md Customization"
-            },
-            {
-                "type": "p",
-                "content": "Your agent's 'soul' is defined in a Markdown file. You can adjust its personality, goals, and boundaries. For a Chinese-speaking family bot, you would define the soul to prioritize natural Mandarin and respectful tone."
-            },
-            {
-                "type": "h2",
-                "content": "Memory Management"
-            },
-            {
-                "type": "p",
-                "content": "Hermes uses a vector database to remember past conversations. This is what allows it to say, 'Last week you mentioned the Wi-Fi on the second floor was slow — did you fix that?' It builds a long-term relationship with your lab."
-            },
-            {
-                "type": "note",
-                "title": "RECOMMENDATION:",
-                "content": "Start with a single 'Dev' profile for Hermes. Once you are comfortable with how it thinks, create a second 'Parent' profile with its own memory and restricted tools.",
-                "level": "note"
-            }
-        ]
-    },
-    {
-        "id": "hermes-vs-automation-tools-what-s-actually-different",
-        "title": "Hermes vs Automation Tools: What's Actually Different",
-        "elements": [
-            {
-                "type": "p",
-                "content": "This is a real question worth answering properly. n8n is already in this plan and it is excellent. Why would you also run Hermes? The honest answer is they solve different problems, and conflating them leads to using both badly."
-            },
-            {
-                "type": "h2",
-                "content": "The Core Difference"
-            },
-            {
-                "type": "table",
-                "headers": [],
-                "rows": [
-                    [
-                        "n8n's strength",
-                        "<strong>Deterministic Logic</strong>. If A happens, then do B, then C. Perfect for: backups, status alerts, data movement between APIs. You want 100% predictability here. If a bill arrives, pay it. You don't want an AI 'deciding' whether to pay it."
-                    ],
-                    [
-                        "Hermes' strength",
-                        "<strong>Heuristic Reasoning</strong>. Nuance, summary, and decision-making under uncertainty. Perfect for: 'Review these logs and tell me if anything looks weird,' or 'Draft a respectful reply to this tenant complaint.' You want creative intelligence here."
-                    ]
-                ]
-            },
-            {
-                "type": "h2",
-                "content": "When to Use Which"
-            },
-            {
-                "type": "table",
-                "headers": ["Scenario", "Tool to Use", "Why"],
-                "rows": [
-                    ["Nightly database backup to B2", "n8n", "Strict schedule, must never fail silently, zero creativity needed."],
-                    ["Scanning 50 receipts for unusual spending", "Hermes", "Requires vision and categorization logic. n8n would struggle with the 'unusual' part."],
-                    ["Alerting when a server goes offline", "n8n", "Fast, binary trigger (Up/Down). No reasoning required."],
-                    ["Summarizing a 20-page legal document", "Hermes", "Classic LLM use case. High context window needed."],
-                    ["Posting server stats to a Discord channel hourly", "n8n", "Repetitive, structured data formatting."],
-                    ["Acting as a 24/7 technical mentor for my sister", "Hermes", "Requires conversational empathy and adaptive explanations."]
-                ]
-            },
-            {
-                "type": "h2",
-                "content": "The 'Smart' Debate: Simple Script vs. Hermes Agent"
-            },
-            {
-                "type": "p",
-                "content": "Can you do some of these things with a simple Python script? Yes. Should you? Often no. A script is rigid. If the API response format changes by one character, the script breaks. Hermes handles minor variations in data gracefully because it 'understands' the intent, not just the regex."
-            },
-            {
-                "type": "table",
-                "headers": ["Scenario", "Simple Script (Binary)", "Hermes Agent (Nuanced)"],
-                "rows": [
-                    ["Input", "Must be perfect / strictly formatted", "Can be messy, natural language, or fuzzy"],
-                    ["Maintenance", "High — you must update code for every edge case", "Low — agent adapts to new scenarios automatically"],
-                    ["Result", "Success or Error (0 or 1)", "Gradated quality (Good, Better, Best)"]
-                ]
-            }
-        ]
-    },
-    {
-        "id": "hermes-for-travel-planning-wanderlog-style",
-        "title": "Hermes for Travel Planning (Wanderlog Style)",
-        "elements": [
-            {
-                "type": "p",
-                "content": "Wanderlog is great, but it's a closed cloud platform. Hermes can act as your personal travel coordinator, living entirely on your hardware. You forward flight emails, hotel confirmations, and interesting 'to-do' links to your bot — it builds the itinerary."
-            },
-            {
-                "type": "h2",
-                "content": "Core Travel Skills"
-            },
-            {
-                "type": "table",
-                "headers": ["Skill", "How It Works"],
-                "rows": [
-                    ["Confirm Tracker", "Forward emails to a private n8n address → n8n sends text to Hermes → Hermes extracts dates/locations into your travel database."],
-                    ["Local Discovery", "Tell Hermes: 'I am in Tokyo for 3 days. I like brutalist architecture and spicy ramen. Find 5 spots within 20 mins of my hotel.'"],
-                    ["Live Tracking", "Hermes pings flight status APIs every hour. Sends you a push if your gate changes or delay occurs."],
-                    ["Photo Journal", "Snap a photo of a menu or a building. Hermes uses vision to identify it, look up the history, and save it to your travel log."]
-                ]
-            },
-            {
-                "type": "note",
-                "title": "PRO TIP:",
-                "content": "Export your Wanderlog data as JSON once and feed it to Hermes. It will learn your travel style and preferences, making its future recommendations much more accurate.",
-                "level": "note"
-            }
-        ]
-    },
-    {
-        "id": "reddit-discovery-engine-hermes-automation",
-        "title": "Reddit Discovery Engine (Hermes Automation)",
-        "elements": [
-            {
-                "type": "p",
-                "content": "Manually browsing Reddit for homelab updates is time-consuming. Hermes can automate this discovery."
-            },
-            {
-                "type": "h2",
-                "content": "The Workflow"
-            },
-            {
-                "type": "list",
-                "items": [
-                    "n8n triggers every morning at 7am.",
-                    "Fetches top 50 posts from r/homelab, r/selfhosted, and r/nousresearch.",
-                    "Hermes reviews titles and summaries. Filters for topics you care about (e.g., 'Mini PC deals' or 'New Llama models').",
-                    "Hermes writes a 3-bullet point 'Morning Briefing' and DMs it to you on Telegram."
-                ]
-            },
-            {
-                "type": "h2",
-                "content": "Why This Is Better Than an RSS Feed"
-            },
-            {
-                "type": "p",
-                "content": "An RSS feed gives you *everything*. Hermes gives you the *signal*. It knows that 'Look at my new rack' posts are just eye candy, while 'New security vulnerability in Nginx' is a high-priority action item."
-            }
-        ]
-    },
-    {
         "id": "ai-enhanced-notes-ask-ai-to-refine-or-template",
         "title": "AI-Enhanced Notes: Ask AI to Refine or Template",
         "elements": [
@@ -3176,12 +2840,14 @@ const PLAN_DATA = [
                 "headers": ["Service", "Default Port", "Internal Mapping", "External (Proxy) URL", "Status"],
                 "rows": [
                     ["Proxmox Web UI", "8006", "N/A (Host)", "https://homelab.local:8006", "✅"],
+                    ["Caddy (Proxy)", "80/443", "80:80, 443:443", "https://lin-os.com", "✅"],
                     ["AdGuard Home", "3000", "3000:3000", "http://adguard.evan.home", "✅"],
-                    ["Jellyfin", "8096", "8096:8096", "https://media.evan.home", "⏳"],
-                    ["Wiki.js", "3000", "3001:3000", "http://wiki.evan.home", "✅"],
-                    ["Linkwarden", "3000", "3002:3000", "http://links.evan.home", "⏳"],
-                    ["Home Assistant", "8123", "8123:8123", "http://ha.evan.home", "⏳"],
-                    ["n8n", "5678", "5678:5678", "http://n8n.evan.home", "⏳"]
+                    ["Wiki.js", "3000", "3001:3000", "https://wiki.lin-os.com", "✅"],
+                    ["Infisical", "8080", "8081:8080", "https://secrets.lin-os.com", "✅"],
+                    ["VS Code Server", "8443", "8443:8443", "https://code.lin-os.com", "✅"],
+                    ["Uptime Kuma", "3001", "3006:3001", "https://status.lin-os.com", "✅"],
+                    ["Jellyfin", "8096", "8096:8096", "https://media.lin-os.com", "⏳"],
+                    ["Linkwarden", "3000", "3002:3000", "https://links.lin-os.com", "⏳"]
                 ]
             }
         ]
@@ -3201,6 +2867,104 @@ const PLAN_DATA = [
                     "Enable 2FA on your router and all admin accounts.",
                     "Disable 'Root login' over SSH (use a regular user + sudo).",
                     "Verify your firewall is blocking all incoming traffic from the WAN."
+                ]
+            },
+            {
+                "type": "h2",
+                "content": "Firewall & Port Strategy"
+            },
+            {
+                "type": "list",
+                "items": [
+                    "<b>No-Port Rule:</b> Close all incoming ports on your router; use Cloudflare Tunnels instead.",
+                    "<b>Internal UFW:</b> Set default deny incoming on the VM; allow only Tailscale/Local.",
+                    "<b>Port Randomization:</b> Move SSH from port 22 to a random high port (e.g., 49222)."
+                ]
+            },
+            {
+                "type": "h2",
+                "content": "Deep SSH Hardening"
+            },
+            {
+                "type": "list",
+                "items": [
+                    "<b>Disable Passwords:</b> Force SSH Keys (Ed25519) only.",
+                    "<b>PermitRootLogin:</b> Set to 'no' in sshd_config.",
+                    "<b>AllowUsers:</b> Whitelist only your specific username.",
+                    "<b>MFA:</b> Add 2FA/MFA for SSH sessions."
+                ]
+            },
+            {
+                "type": "h2",
+                "content": "Active Security Monitoring Software"
+            },
+            {
+                "type": "table",
+                "headers": ["Software", "Core Function", "Why It's Needed"],
+                "rows": [
+                    ["CrowdSec", "Collaborative IPS", "Modern community-driven firewall that blocks malicious IPs globally."],
+                    ["Infisical", "Secrets Management", "Centralized, encrypted platform for managing app secrets and .env variables."],
+                    ["Fail2ban", "Log-based blocking", "Essential for basic protection on SSH and local services."],
+                    ["Wazuh", "SIEM / XDR", "Enterprise-grade endpoint monitoring, file integrity checks, and vulnerability detection."],
+                    ["Uptime Kuma", "Service Availability", "Instant notification if critical security services (VPN, Auth portals) go offline."],
+                    ["Authentik / Authelia", "Identity (IAM)", "Centralized SSO with MFA for all self-hosted dashboards and tenant portals."],
+                    ["Glances / Netdata", "Resource Monitoring", "Identifying CPU/Network anomalies that could signal a breach or mining activity."],
+                    ["Trivy / Clair", "Image Scanning", "Automated scanning of Docker images for known CVEs before deployment."]
+                ]
+            },
+            {
+                "type": "h2",
+                "content": "Credential & Secrets Audit"
+            },
+            {
+                "type": "table",
+                "headers": ["Service", "Sensitive Fields", "Why it needs configuration"],
+                "rows": [
+                    ["TREK", "ADMIN_PASSWORD, ADMIN_EMAIL, ENCRYPTION_KEY", "Admin access and data encryption."],
+                    ["Linkwarden", "POSTGRES_PASSWORD, NEXTAUTH_SECRET", "Database security and session signing."],
+                    ["Homepage", "PROXMOX_API_TOKEN (Secret)", "Read-only access to hypervisor stats."],
+                    ["n8n", "N8N_ENCRYPTION_KEY, CREDENTIALS", "Encrypting third-party API keys within workflows."]
+                ]
+            },
+            {
+                "type": "h2",
+                "content": "Secrets Management Recommendations"
+            },
+            {
+                "type": "table",
+                "headers": ["Software", "Description"],
+                "rows": [
+                    ["Infisical (Recommended)", "Modern, end-to-end encrypted platform for managing secrets. Great UI and easy integration."],
+                    ["HashiCorp Vault", "The industry standard. Extremely powerful but has a steeper learning curve."],
+                    ["SOPS (Secrets Operations)", "Encrypts your .env or .yaml files using age or PGP, allowing for safe Git commits."],
+                    ["Doppler", "Developer-focused secrets manager that syncs secrets across your entire stack."]
+                ]
+            },
+            {
+                "type": "h2",
+                "content": "Public Exposure Guide (Pre-Flight)"
+            },
+            {
+                "type": "table",
+                "headers": ["Step", "Best Practice"],
+                "rows": [
+                    ["Domain & DNS", "Use Cloudflare for DNS/WAF. Proxy all records."],
+                    ["Connectivity", "Outbound-only via Cloudflare Tunnels (No ports open)."],
+                    ["SSL/TLS", "Strict HTTPS. Use Wildcard Certs to hide subdomains."],
+                    ["Reverse Proxy", "Caddy or Nginx Proxy Manager for traffic routing."]
+                ]
+            },
+            {
+                "type": "h2",
+                "content": "Advanced Hardening (Defense in Depth)"
+            },
+            {
+                "type": "list",
+                "items": [
+                    "<b>OIDC / SSO:</b> Wrap public services in Authentik/Authelia.",
+                    "<b>Geo-Blocking:</b> Block all non-essential country traffic in Cloudflare.",
+                    "<b>IP Whitelisting:</b> Restrict access to known IPs (Tailscale exit nodes).",
+                    "<b>CrowdSec:</b> Link proxy logs to block known malicious actors."
                 ]
             },
             {
