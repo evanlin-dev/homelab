@@ -3406,6 +3406,300 @@ const PLAN_DATA = [
             }
         ]
     }
+,
+
+    {
+        "id": "backup-testing-restore-drills",
+        "title": "Backup Testing: Restore Drills",
+        "elements": [
+            {
+                "type": "p",
+                "content": "A backup you have never tested is a backup you do not have. Each of these procedures should be run monthly, in a test environment, before you need them in a real emergency. The goal is to know exactly what recovery looks like before it is 2am and something has failed."
+            },
+            {
+                "type": "p",
+                "content": "Drill 1: Proxmox Backup Server \u2014 VM Restore\nScenario\nA VM (e.g., your main Docker stack) has become corrupt or been accidentally deleted.\nStep 1\nLog into Proxmox Web UI \u2192 Datacenter \u2192 PBS storage\nStep 2\nSelect the VM backup from the list. Note the backup date and size shown.\nStep 3\nClick Restore \u2192 choose a new VMID (e.g., 999) so it creates a NEW VM rather than overwriting anything.\nStep 4\nStart the restored VM. SSH in. Verify: are Docker containers running? Is the data intact? Is the database consistent?\nStep 5\nDelete the test VM once verified. The real VM is untouched.\nWhat you learn\nHow long restore takes (note it). Whether your backup is actually consistent. Whether you know the restore process without googling.\nExpected time\n5\u201315 minutes for a 50GB VM restore over a local network."
+            },
+            {
+                "type": "p",
+                "content": "Drill 2: Vaultwarden \u2014 Export and Re-Import\nScenario\nVaultwarden data is corrupt or the server is unreachable. Family cannot access any passwords.\nStep 1\nRestore the Vaultwarden data directory from your Rclone B2 backup to a test location.\nStep 2\nSpin up a fresh Vaultwarden Docker container pointing at the restored data directory.\nStep 3\nLog in to the test instance from a browser. Can you see all vaults, all passwords, all shared collections?\nStep 4\nTest one family member's account \u2014 can they log in and see their items?\nStep 5\nShut down the test instance. Document how long this took and any issues encountered.\nWhat you learn\nWhether the B2 backup is actually usable (not just present). Whether you can restore without the original server.\nCritical check\nVerify the backup is recent \u2014 check the file modification date on B2. If the last sync was 2 weeks ago, your backup retention policy needs fixing."
+            },
+            {
+                "type": "p",
+                "content": "Drill 3: Rclone B2 \u2014 Full NAS Restore Simulation\nScenario\nThe NAS has failed completely. You need to recover your most important data from off-site B2 backup.\nStep 1\nOn a test machine (or a separate directory), run: rclone ls b2:your-bucket/important-dir -- verify the file list looks correct and recent.\nStep 2\nPick one critical directory (e.g., Immich original photos for one month). Run: rclone copy b2:your-bucket/photos/2025-01 /tmp/restore-test/\nStep 3\nVerify the restored files: open several images, check file sizes match, verify no corruption (md5sum comparison if you stored checksums).\nStep 4\nCheck the encryption: if you encrypted with rclone crypt, verify you can decrypt with your stored password. This is the most common failure point \u2014 encrypted backups whose keys are lost.\nStep 5\nEstimate full restore time based on your B2 egress speed and total backup size.\nWhat you learn\nWhether your rclone crypt password is documented and accessible. How long a full restore would actually take. Whether your most critical data is actually being synced."
+            },
+            {
+                "type": "p",
+                "content": "Drill 4: ZFS \u2014 Pool Resilver After Drive Failure\nScenario\nOne drive in your NAS mirror shows a S.M.A.R.T. pre-failure warning. You need to replace it before the drive dies.\nStep 1\nIdentify the failing drive: zpool status \u2014 look for DEGRADED or the specific device with errors.\nStep 2\nOrder the replacement drive. While waiting, the pool is degraded but still functional \u2014 do not power off.\nStep 3\nWhen the new drive arrives, physically hot-swap it (Synology/TrueNAS support this). Or shut down, swap, and power back on.\nStep 4\nRun: zpool replace pool_name /dev/old_disk /dev/new_disk \u2014 ZFS begins resilvering immediately.\nStep 5\nMonitor with: zpool status \u2014 watch the resilver progress. On a 14TB drive, resilver takes 6\u201324 hours.\nStep 6\nVerify completion: zpool status should show ONLINE for all vdevs with zero errors.\nWhat you learn\nThe resilver timeline for your drive size. Whether your pool configuration is correct (run this drill on a test pool with small files before you have real data).\nThe drill version\nCreate a test ZFS pool on your Mini PC with two small USB drives (or two loop devices). Simulate a drive failure with zpool offline, replace the 'failed' drive, and watch the resilver. Do this before you depend on ZFS."
+            }
+        ]
+    },
+    {
+        "id": "troubleshooting-what-to-check-first",
+        "title": "Troubleshooting: What to Check First",
+        "elements": [
+            {
+                "type": "p",
+                "content": "This is the map, not the manual. The manual lives in SilverBullet \u2014 write detailed notes there when you solve something. This section gives you the diagnostic order so you stop in the right place instead of wandering."
+            },
+            {
+                "type": "p",
+                "content": "Service Not Accessible\nWork through these in order. Stop at the first one that fails \u2014 that is where the problem is."
+            },
+            {
+                "type": "p",
+                "content": "Step\nCheck\nCommand / Tool\nWhat it rules out\n1\nIs the container running?\ndocker ps | grep [service-name]\nIf not running: docker logs [container] to see why it crashed\n2\nIs it listening on the expected port?\nss -tlnp | grep [port] or docker port [container]\nContainer may be running but crashed internally after start\n3\nCan you reach it directly on the host?\ncurl http://localhost:[port] from the server itself\nRules out the container. If this fails, problem is inside Docker\n4\nIs the reverse proxy pointed at the right host:port?\nNginx Proxy Manager \u2192 proxy host \u2192 check Forward Hostname and Port\nA typo here is the most common cause of 502 Bad Gateway\n5\nIs DNS resolving correctly?\nnslookup service.yourdomain.com \u2014 from both server and a client device\nTwo different failure modes: wrong DNS record vs wrong proxy config\n6\nIs there a firewall blocking it?\nsudo ufw status or check Proxmox firewall rules\nUFW may be blocking the port even though the service is running\n7\nIs the SSL cert valid?\ncurl -v https://service.yourdomain.com 2>&1 | grep -i cert\nExpired cert causes HTTPS failures that look like service failures\n8\nIs Pangolin/Tailscale connected?\ntailscale status or check Pangolin dashboard\nTunnel may have dropped \u2014 restart newt container"
+            },
+            {
+                "type": "p",
+                "content": "Server Not Responding (SSH Down)\nStep\nCheck\nHow\n1\nIs the server powered on?\nCheck physical power light. Check UPS \u2014 did power cut happen?\n2\nIs it on the network?\nping [server-ip] from another device on the same network\n3\nIs SSH running but port blocked?\nTry Tailscale IP if Tailscale is on a different interface: ssh user@100.x.x.x\n4\nDid a kernel update break boot?\nConnect monitor + keyboard. Watch boot messages. Does it hang? Does it show a grub menu?\n5\nIs the filesystem full?\nIf boot succeeds but SSH fails: boot to recovery mode, check df -h \u2014 full / partition causes all sorts of failure\n6\nDid Docker eat all the RAM?\nBoot with reduced Docker services if possible. Check dmesg for OOM killer messages.\n7\nZFS pool issue?\nzpool status on the recovery console. A faulted pool can stall boot.\nLast resort\nPhysical access\nConnect HDMI and keyboard. The screen output will tell you exactly what is happening."
+            },
+            {
+                "type": "p",
+                "content": "Proxmox VM Not Starting\nSymptom\nCheck\nFix\nTask error: 'permission denied'\nCheck if the VM disk file exists: ls -lh /var/lib/vz/images/[VMID]/\nDisk may have been moved or corrupted \u2014 restore from PBS\nError: 'No space left on device'\npveam list or df -h on the Proxmox host\nLocal storage full \u2014 move VMs to NAS storage or expand\nVM starts then immediately stops\nCheck VM console output: in web UI, click console before starting\nOften a kernel panic or misconfigured bootloader \u2014 visible in console\n'Lock file exists' error\nqm unlock [VMID]\nLeftover lock from a crash. Safe to remove if VM is definitively stopped.\nNetwork not coming up in VM\nCheck VM network config in hardware tab. Check bridge: ip link show on Proxmox host.\nBridge may be misconfigured or missing after update\nPBS restore fails\nCheck PBS datastore free space. Check network connectivity to PBS.\nPBS storage may be full \u2014 dedup doesn't always prevent this if tasks accumulate"
+            },
+            {
+                "type": "p",
+                "content": "ZFS Pool Degraded or Faulted\nState\nWhat it means\nWhat to do\nDEGRADED (one drive offline)\nOne drive failed or was removed. The pool still works from the mirror but has NO redundancy.\nCheck S.M.A.R.T. on the affected drive. Order replacement immediately. Do not add writes unless necessary.\nDEGRADED (resilver in progress)\nA replacement drive is being rebuilt from the mirror. Normal operation.\nWait. Monitor progress with zpool status. Do not interrupt unless the host must reboot.\nFAULTED\nThe pool cannot be imported \u2014 possible data loss. Usually requires manual intervention.\nzpool import -f [pool-name] may recover it. If that fails: boot from a live USB and attempt recovery. This is a SilverBullet runbook situation.\nChecksum errors (non-zero)\nZFS detected and corrected corruption. The data is fine but the drive is struggling.\nRun zpool scrub. Watch if errors accumulate. More than a few per week = drive health concern.\nREMOVED\nDrive was cleanly removed (hot-swap) or disconnected.\nReconnect the drive: zpool online pool_name [device]. If the drive is gone permanently, replace with zpool replace.\nScrub errors\nUncorrectable errors found during scrub. Some data is unreadable.\nCheck which files: zpool status -v. If backups are good, restore affected files. If no backup of those files, data may be lost."
+            },
+            {
+                "type": "p",
+                "content": "AdGuard Home: Everything Stopped Working\nWhen AdGuard breaks, it takes the entire network's DNS with it. Everything stops loading. This is the most disruptive single point of failure in Stage 1."
+            },
+            {
+                "type": "p",
+                "content": "Symptom\nCheck\nFix\nAll domains resolve but ads show again\nAdGuard container crashed \u2014 browser using ISP DNS fallback\ndocker restart adguard\nNothing resolves at all\nAdGuard container is down and no fallback configured\nOn another device, temporarily set DNS to 1.1.1.1 manually. Then fix AdGuard.\nAdGuard shows as running but DNS fails\nPort 53 conflict \u2014 another process took port 53\nss -tlunp | grep 53 to find the conflict. systemd-resolved is the common culprit on Ubuntu.\nsystemd-resolved conflict on Ubuntu\nUbuntu runs systemd-resolved on 127.0.0.53:53 by default\nEdit /etc/systemd/resolved.conf: DNSStubListener=no \u2192 systemctl restart systemd-resolved\nUpstream DNS failing\nAdGuard cannot reach 1.1.1.1 or 9.9.9.9\nCheck server internet connectivity: curl https://1.1.1.1 \u2014 network issue if this fails\nSpecific domain broken for one device\nThat device has DNS cached from before AdGuard \u2014 or has manual DNS configured\nOn the device: ipconfig /flushdns (Windows) or sudo resolvectl flush-caches (Linux)"
+            },
+            {
+                "type": "p",
+                "content": "Tailscale: Can't Reach Server Remotely\nSymptom\nCheck\nFix\ntailscale status shows server as offline\nTailscale daemon on the server has crashed or been stopped\nSSH into the server over LAN. sudo systemctl restart tailscaled\nServer shows online but SSH times out\nServer firewall is blocking Tailscale traffic\nsudo ufw allow in on tailscale0 \u2014 allow all traffic on the Tailscale interface\nLogin expired / authentication required\nTailscale key has expired\nsudo tailscale up \u2014 re-authenticate via the Tailscale admin console\nTailscale connected but can't reach Docker services\nSubnet routing not enabled\nsudo tailscale up --advertise-routes=192.168.1.0/24 \u2014 enables access to local services\nVery high latency via Tailscale\nDERP relay being used instead of direct connection\nUsually resolves itself. Check Tailscale admin console for relay vs direct status."
+            },
+            {
+                "type": "p",
+                "content": "Docker Compose: Common Errors\nError message\nCause\nFix\nport is already allocated\nAnother container or service is using that host port\nChange the host port (left side of colon) in docker-compose.yml. See Port Reference table.\nno such file or directory (volume mount)\nThe host directory in the volume mount doesn't exist\nmkdir -p /opt/stacks/[service]/data \u2014 create the directory first\npermission denied (volume mount)\nThe container's user doesn't have permission to write to the mounted directory\nchown -R 1000:1000 /opt/stacks/[service]/data \u2014 match the container's UID\nnetwork [name] not found\nThe Docker network referenced in compose doesn't exist yet\ndocker network create [name] \u2014 or run docker compose up for the stack that owns the network first\nimage not found\nTypo in image name, or private registry not authenticated\ndocker pull [image] manually to see the actual error message\ncontainer name already in use\nA stopped container with the same name still exists\ndocker rm [container-name] \u2014 remove the stopped container first\nExit code 1 immediately after start\nApplication crashed on startup \u2014 check logs\ndocker logs [container-name] \u2014 the actual error is in there\nHealth check failing but app seems fine\nHealth check command is wrong or the service takes time to start\nAdd a startup delay: start_period: 30s in the healthcheck section"
+            }
+        ]
+    },
+    {
+        "id": "interview-prep-practice-environment",
+        "title": "Interview Prep: Practice Environment",
+        "elements": [
+            {
+                "type": "p",
+                "content": "This section is a tool, not talking points. The goal is a homelab setup that actively helps you practice \u2014 coding challenges, system design, technical screens \u2014 using AI to give you feedback you can't get from LeetCode alone."
+            },
+            {
+                "type": "p",
+                "content": "What This Covers\nThree distinct modes of interview prep, each with a concrete homelab implementation:"
+            },
+            {
+                "type": "p",
+                "content": "Mode\nWhat you're practicing\nHomelab role\nLeetCode / coding challenges\nProblem-solving speed, patterns, edge cases\nHermes as an adaptive tutor who explains, quizzes you, tracks weak spots, and adjusts difficulty based on how you're doing \u2014 not a static problem bank\nSystem design\nWhiteboarding distributed systems under time pressure\nYour actual infrastructure as the reference. Hermes runs timed mock sessions, challenges your assumptions, and asks follow-up questions like an interviewer would\nTechnical screen simulation\nThinking out loud while coding, handling pressure, recovering from mistakes\nHermes voices the interviewer role \u2014 asks clarifying questions, gives hints on a delay, and gives you a debrief afterward with specific things to improve"
+            },
+            {
+                "type": "p",
+                "content": "LeetCode Practice Environment\nThe Problem With LeetCode Alone\nLeetCode tells you pass/fail. It doesn't tell you why your thinking got stuck, which patterns you keep missing, or what to focus on next given where you are in your prep. Hermes fills those gaps."
+            },
+            {
+                "type": "p",
+                "content": "Session Setup\nHermes as tutor \u2014 starter prompt\n'You are a coding interview tutor. I have [X weeks] until interviews at [company type]. My weak areas are [DP, graphs, etc.]. Each session: give me one problem matched to my level, let me attempt it, then give me a structured debrief. Track which patterns we've covered and remind me at the start of each session. If I haven't attempted something in 5 days, pick a problem from that category.'\nSession structure\nHermes gives you a problem. You open a blank editor (VS Code, Replit, or your Gitea-hosted coding environment). You work through it, thinking out loud in the chat. Hermes watches for stuck points but doesn't give answers \u2014 it gives directed hints after a configurable delay.\nConfigurable hint delay\nTell Hermes: 'Give me a hint only if I've been silent for 8 minutes or explicitly ask.' This mirrors the real interview dynamic where you have to drive.\nPattern tracking\nAfter each problem, Hermes updates a running note: problem name, pattern (sliding window / two pointer / DFS / DP / etc.), whether you got it, and what you missed. After 10 sessions, it surfaces your three weakest patterns and weights toward those.\nSpaced repetition\nEvery Sunday morning, Hermes sends you a Telegram message: 'You haven't reviewed [two-pointer problems] in 8 days. Here's a quick problem to stay sharp.' Low-friction maintenance."
+            },
+            {
+                "type": "p",
+                "content": "Clean Coding Environment \u2014 Spin Up in 60 Seconds\nKeep a Gitea repo called interview-env. Clone and run in one command:\nWhat it contains\ndocker-compose.yml with Postgres 16 (seeded schema), Redis 7, a PocketBase backend, and a bare React+Vite frontend. Plus a /problems directory of solved problems with your notes.\nOne-command start\ngit clone gitea.home/you/interview-env && cd interview-env && docker compose up -d\nWhy this matters\nTake-home assessments: zero setup time. Live coding: you have a working full-stack reference. The environment is yours \u2014 you chose every piece of it and you can explain every choice.\nProblem notes format\nEach solved problem gets a markdown file: problem name, constraints, your first approach, why it was wrong, the correct approach, time/space complexity, and which pattern it demonstrates. Hermes generates this template after each session."
+            },
+            {
+                "type": "p",
+                "content": "System Design Practice\nHow It Works\nSystem design interviews are not about memorizing architecture diagrams. They are about demonstrating structured thinking under time pressure \u2014 scoping, asking good questions, making tradeoffs explicitly, and defending choices. Hermes simulates the interviewer, not the answer."
+            },
+            {
+                "type": "p",
+                "content": "Mock session prompt for Hermes\n'Run a 45-minute system design mock interview with me. Pick a real system (URL shortener, ride-sharing, video streaming, notification system, etc.) \u2014 don't tell me which one until I say start. Act as a senior engineer interviewer: ask clarifying questions, push back on my assumptions, ask me to go deeper on specific components, and at the end give me a debrief covering what I did well, what I missed, and one thing to focus on next time.'\nStarting the session\nType 'start' to Hermes. It names the system. You have 45 minutes. Think out loud \u2014 paste your rough architecture into the chat, describe your thinking, ask if you should go deeper on any component.\nWhat Hermes challenges\nScale assumptions ('what if traffic spikes 100x?'), consistency tradeoffs ('you chose eventual consistency \u2014 what breaks for the user?'), component choices ('why Postgres here and not Cassandra?'), missing pieces ('you forgot the cache invalidation strategy').\nDebrief format\nHermes ends the session with: what you covered well, one component you skimmed, one question you should have asked the interviewer, and a 1\u201310 score on depth vs breadth balance.\nTracking progress\nHermes keeps a running log: systems covered, date, score, and the main gap from each session. After 5 sessions it identifies your structural weak spot (e.g., 'you consistently underspec the data model before jumping to infrastructure')."
+            },
+            {
+                "type": "p",
+                "content": "Full Technical Screen Simulation\nThis is the hardest mode \u2014 it requires Hermes to hold role throughout the session without breaking character, which works best with a capable model (Claude via OpenRouter). Run it when you are 2\u20133 weeks out and want to stress-test."
+            },
+            {
+                "type": "p",
+                "content": "The prompt\n'You are conducting a 60-minute technical screen for a mid-level frontend/fullstack engineer role. Start with 5 minutes of background questions, then give me a coding problem to work through while talking out loud. Give me one hint if I've been stuck for more than 10 minutes without progress. At the end, give me honest feedback as if you were actually writing feedback to a hiring committee.'\nThe coding-out-loud practice\nThe most commonly failed part of real interviews is not solving the problem \u2014 it's failing to communicate your thinking while you solve it. Practice narrating: 'I'm thinking about this as a sliding window problem because... let me check the constraints first... I notice this edge case...' Hermes listens and gives feedback on your narration quality in the debrief.\nRecovering from mistakes\nTell Hermes to simulate the experience of catching a bug mid-solution and recovering gracefully. Real interviews often turn on this moment \u2014 do you panic, or do you say 'I see the issue, let me trace through why...' and fix it systematically?\nCalibration\nAfter 3 simulated screens, ask Hermes to compare your sessions and identify one consistent pattern: 'You always rush the problem clarification step. In all three sessions you started coding within 90 seconds of getting the problem. Interviewers notice this.'"
+            }
+        ]
+    },
+    {
+        "id": "energy-monitoring-and-cost-dashboard",
+        "title": "Energy Monitoring and Cost Dashboard",
+        "elements": [
+            {
+                "type": "p",
+                "content": "The doc mentions NYC electricity costs and the Kill A Watt meter repeatedly. This section closes the loop: how to get per-device wattage into Home Assistant, build a Grafana cost dashboard, and have Hermes give you monthly energy reports. At $0.25/kWh in NYC, even a 15W idle device costs $33/year \u2014 the numbers add up fast when you are running a full homelab stack."
+            },
+            {
+                "type": "p",
+                "content": "Hardware: Which Smart Plug to Use\nPlug\nEnergy monitoring?\nLocal control?\nHome Assistant integration\nCost\nBest for\nKasa EP25 (already in accessories)\nYes \u2014 real-time watts, amps, voltage\nYes \u2014 works without Kasa cloud via local API\nExcellent native HA integration via Kasa Local\n~$15\u201320\nMost devices: server, NAS, UPS, network gear\nShelly Plug S / Shelly Plus Plug US\nYes \u2014 high accuracy, 0.1W resolution\nYes \u2014 MQTT or HTTP, fully local\nExcellent \u2014 Shelly is the homelab community standard for energy monitoring\n~$15\u201320\nPreferred if you want open firmware (Shelly supports Tasmota / Mongoose OS)\nEmporia Vue 2 (whole-home)\nYes \u2014 per-circuit monitoring, clips onto breaker panel\nYes \u2014 local API available\nGood HA integration via Emporia custom component\n~$70\nThe whole building \u2014 see per-circuit usage including HVAC, washer/dryer, server closet\nTP-Link Kasa EP10\nNo energy monitoring\nYes \u2014 local API\nGood\n~$10\nDevices you just want to automate, not monitor"
+            },
+            {
+                "type": "p",
+                "content": "Home Assistant Energy Integration\nStep 1: Add smart plugs\nKasa EP25 \u2192 HA Settings \u2192 Devices \u2192 Add Integration \u2192 TP-Link Kasa. Shelly \u2192 HA Settings \u2192 Devices \u2192 Add Integration \u2192 Shelly. Both auto-discover on the local network.\nStep 2: Enable HA Energy Dashboard\nHA Settings \u2192 Energy \u2192 Add individual device consumption \u2192 select each smart plug entity (sensor.[device]_current_power). HA calculates kWh from the real-time watt readings automatically.\nStep 3: Set your electricity rate\nHA Energy Dashboard \u2192 Electricity grid \u2192 Add tariff \u2192 $0.25/kWh (Con Edison NYC average). HA will calculate cost automatically in the Energy dashboard.\nStep 4: Create device-level entities\nIn HA's energy dashboard, label each plug: 'server-mini-pc', 'nas-synology', 'tower-t5820', 'ups-cyberpower', 'network-switch'. These labels appear in all dashboards and Grafana queries.\nStep 5: Long-term statistics\nHA stores energy data in its long-term statistics database. No InfluxDB needed for basic cost tracking \u2014 HA's built-in energy dashboard shows daily/weekly/monthly cost per device going back months."
+            },
+            {
+                "type": "p",
+                "content": "Grafana Energy Cost Dashboard\nHome Assistant's built-in energy dashboard is good but not customizable enough for a multi-device homelab. Pull the data into Grafana for a proper per-device cost breakdown:"
+            },
+            {
+                "type": "p",
+                "content": "Data source\nUse the Home Assistant Grafana integration (hass-grafana-datasource) or push HA sensor data to InfluxDB via the InfluxDB integration in HA. InfluxDB is cleaner for long-term Grafana queries.\nKey panels to build\n(1) Current wattage per device \u2014 bar chart, real-time. Immediately shows the Mini PC at 12W, NAS at 20W, switch at 8W, etc. (2) Monthly kWh per device \u2014 stacked area chart over time. (3) Monthly cost per device ($) at $0.25/kWh \u2014 this is the one you screenshot for hardware justification decisions. (4) Projected annual cost \u2014 simple calculation: monthly cost * 12.\nThe hardware justification panel\nA Grafana stat panel: 'Tower workstation monthly idle cost: $12.75 vs. Mini PC monthly cost: $0.90'. This makes the Stage 4 upgrade decision concrete \u2014 you know exactly what the always-on tower costs.\nGrafana formula for cost\nIn InfluxDB query: SELECT mean(value) * 0.001 * 720 * 0.25 FROM homeassistant WHERE entity_id = 'sensor.mini_pc_power'. This converts average watts \u2192 kWh/month \u2192 cost/month at $0.25/kWh. Adjust 720 for hours in a month.\nThe Con Edison rate caveat\nNYC Con Edison has time-of-use rates during summer peak demand (peak hours cost more). For accuracy, the Emporia Vue 2 can track time-of-use separately. For planning purposes, $0.25/kWh average is close enough."
+            },
+            {
+                "type": "p",
+                "content": "Hermes Monthly Energy Report\nScheduled automation\n1st of every month at 8am: Hermes queries the HA energy API (or InfluxDB) for last month's per-device energy consumption, calculates cost at $0.25/kWh, and sends a formatted Telegram report.\nReport format\n[ENERGY REPORT \u2014 March 2027] | Mini PC: 8.6 kWh \u2014 $2.15 | NAS: 14.4 kWh \u2014 $3.60 | Tower (idle): 51.8 kWh \u2014 $12.95 | Network stack: 5.8 kWh \u2014 $1.45 | TOTAL: 80.6 kWh \u2014 $20.15 | vs last month: +$2.10 (Tower added this month)\nAnomaly detection\nIf any device shows >20% higher consumption than its 3-month average, Hermes flags it: 'NAS power draw is 35% above average \u2014 check for runaway processes or drive resilver.'\nAnnual projection\nHermes calculates: 'At current consumption, your annual electricity cost for homelab hardware is $241.80. Savings vs cloud equivalents (Google One, Spotify, iCloud, GitHub): ~$720/year.'"
+            }
+        ]
+    },
+    {
+        "id": "dns-privacy-dns-over-https-and-dns-over-tls",
+        "title": "DNS Privacy: DNS-over-HTTPS and DNS-over-TLS",
+        "elements": [
+            {
+                "type": "p",
+                "content": "Every DNS query you make is visible to your ISP by default \u2014 they can see every domain name your network requests even if the actual web traffic is encrypted by HTTPS. The fix is encrypting the DNS queries themselves. AdGuard Home supports both sending encrypted DNS upstream (your queries to the internet are private) and receiving encrypted DNS from your devices (your devices communicate with AdGuard privately even on the local network)."
+            },
+            {
+                "type": "p",
+                "content": "Two Directions of DNS Encryption\nDirection\nWhat it protects\nWhere to configure\nUpstream DoH/DoT (AdGuard \u2192 internet)\nYour ISP cannot see which domains you are looking up. Instead of sending plaintext DNS to 1.1.1.1:53, AdGuard sends encrypted HTTPS requests to https://1.1.1.1/dns-query.\nAdGuard Home \u2192 Settings \u2192 DNS settings \u2192 Upstream DNS servers\nLocal DoH/DoT (devices \u2192 AdGuard)\nDevices on your local network communicate with AdGuard encrypted, even on the LAN. Less critical than upstream (you trust your own LAN), but prevents snooping on shared Wi-Fi and is a good practice for devices you are learning to secure.\nAdGuard Home \u2192 Settings \u2192 Encryption settings \u2014 requires a certificate for your local domain"
+            },
+            {
+                "type": "p",
+                "content": "Configuring Encrypted Upstream DNS in AdGuard Home\nStep 1: Open DNS settings\nAdGuard Home web UI \u2192 Settings \u2192 DNS settings \u2192 Upstream DNS servers\nStep 2: Replace default upstream\nRemove 1.1.1.1 and 8.8.8.8 (these are plaintext). Add one of the following encrypted upstreams:\nCloudflare DoH\nhttps://cloudflare-dns.com/dns-query \u2014 fastest, strong privacy policy, but Cloudflare is still a US company\nQuad9 DoH\nhttps://dns.quad9.net/dns-query \u2014 nonprofit, blocks malware domains, good privacy policy, no data sold\nNextDNS DoH (recommended for homelab)\nhttps://dns.nextdns.io/[your-id] \u2014 free tier up to 300k queries/month, per-profile filtering, logs you can review, family-safe modes. Create a free account at nextdns.io.\nMullvad DoH\nhttps://dns.mullvad.net/dns-query \u2014 zero logging, operated by the same team as Mullvad VPN, no account needed\nStep 3: Enable DNS-over-HTTPS bootstrap\nAdd a bootstrap DNS so AdGuard can resolve the DoH server's hostname on startup: 9.9.9.9 (plaintext, used only to find the encrypted server, then never used again)\nStep 4: Verify\nAfter saving, go to AdGuard Home \u2192 Dashboard. Under 'Upstream DNS' you should see the DoH URL, not an IP address. Run a test query and confirm it resolves correctly."
+            },
+            {
+                "type": "p",
+                "content": "Why This Matters for This Specific Setup\n    \u2022 Your ISP (typically Spectrum or Optimum in NYC) logs DNS queries and may sell this data. Encrypted DNS removes this visibility entirely.\n    \u2022 Cloudflare Tunnels and Pangolin protect your server's inbound traffic. Encrypted DNS protects your outbound queries. Together they close the main visibility gaps in a residential internet connection.\n    \u2022 When using Tailscale: Tailscale sets its own DNS resolver. Configure Tailscale to use your AdGuard Home IP as the DNS server so all Tailscale devices (including phones when away from home) also use encrypted upstream DNS.\n    \u2022 Performance impact: negligible. DoH adds a few milliseconds per fresh DNS lookup. Since AdGuard caches responses, most queries hit the local cache anyway."
+            },
+            {
+                "type": "p",
+                "content": "NOTE: If you switch to NextDNS (recommended), you get per-device query logs, custom blocklists on top of AdGuard, and the ability to see exactly which domains each device queries. Run both AdGuard Home (local ad blocking, local DNS overrides) and NextDNS (encrypted upstream, additional filtering). AdGuard forwards to NextDNS over DoH."
+            }
+        ]
+    },
+    {
+        "id": "git-workflow-for-homelab-configs",
+        "title": "Git Workflow for Homelab Configs",
+        "elements": [
+            {
+                "type": "p",
+                "content": "The doc mentions committing configs to Gitea in several places but never shows what that actually looks like. A poorly structured config repo means you will eventually either commit a secret by accident or have a repo so disorganized you stop updating it. Here is the specific structure that works."
+            },
+            {
+                "type": "p",
+                "content": "Repository Structure: Four Repos, One Purpose Each\nRepo name\nWhat goes in it\nWhat never goes in it\nWho needs access\nhomelab-stacks\nAll Docker Compose files, organized by service. /stacks/jellyfin/docker-compose.yml, /stacks/immich/docker-compose.yml, etc. Also includes each service's nginx-proxy-manager config exported as JSON.\nAny .env files. Any files containing passwords, tokens, or API keys.\nYou only \u2014 private repo\nhomelab-scripts\nPython scripts, bash scripts, n8n workflow exports, cron job definitions, Ansible playbooks (Stage 4+). Anything you wrote that automates something.\nScripts with hardcoded credentials. Any script that contains a password inline.\nYou only \u2014 private repo\nhomelab-notes\nSilverBullet notes exported as markdown, or a Gitea-backed folder that SilverBullet syncs to. Your wiki, runbooks, and troubleshooting notes.\nPersonal financial data, tenant names, anything sensitive.\nYou only \u2014 private repo\ndotfiles\nShell configuration (.zshrc, .bashrc), vim/neovim config, SSH config (without private keys), tmux config, git config. The setup that makes any new server feel like home in 5 minutes.\nSSH private keys. Any credential files (.netrc, .pgpass).\nYou only \u2014 private repo. Can be public if you sanitize it carefully."
+            },
+            {
+                "type": "p",
+                "content": "The .gitignore Pattern for Each Repo\nhomelab-stacks .gitignore\n*.env | .env | .env.* | **/secrets/ | **/data/ | **/.secrets | *.key | *.pem | *.crt (do not commit SSL certs from Let's Encrypt) | docker-compose.override.yml (local overrides often contain credentials)\nhomelab-scripts .gitignore\nconfig.py | config.yaml | secrets.yaml | *.token | .env | Any file you know contains credentials \u2014 add it immediately when you create the file, before you write anything sensitive into it\ndotfiles .gitignore\n~/.ssh/id_* (private keys) | ~/.ssh/known_hosts (not sensitive but noisy) | .netrc | .pgpass | Any file ending in .secret or .key"
+            },
+            {
+                "type": "p",
+                "content": "How to Handle Secrets: Document Without Leaking\nThe problem: your docker-compose.yml references environment variables like POSTGRES_PASSWORD and VAULTWARDEN_ADMIN_TOKEN, but the actual values live in .env files that are gitignored. How does future-you (or a fresh server setup) know what values those variables need?"
+            },
+            {
+                "type": "p",
+                "content": "The .env.example pattern\nFor every service, commit a .env.example file alongside the .env (which is gitignored). The .env.example contains every variable name with a placeholder value and a comment explaining what it is: POSTGRES_PASSWORD=change-me-strong-password # Min 20 chars, used by Gitea and Paperless. This documents the interface without leaking the secret.\nSecret inventory in SilverBullet\nKeep a note titled 'Secret Inventory' in SilverBullet: a table of every secret in the stack, which service uses it, where it is stored (Vaultwarden collection name), and when it was last rotated. Never put the actual value in the note \u2014 just the name and location.\nVaultwarden as the source of truth\nEvery secret in the homelab should have a corresponding entry in Vaultwarden. When you need to set up a new server, you pull the secret from Vaultwarden. The Gitea repo tells you which secrets are needed; Vaultwarden stores the actual values.\nEnvironment variable injection at runtime\nIn your Docker Compose files, reference variables as ${VARIABLE_NAME}. On the server, the .env file in the same directory as the compose file is loaded automatically by Docker Compose. Never put the value inline in the compose file itself."
+            },
+            {
+                "type": "p",
+                "content": "Hermes: Auditing Repos for Accidentally Committed Credentials\nThe ask\n'Audit my homelab-stacks repo for any accidentally committed secrets or credentials.'\nWhat Hermes does\nClones the repo (via Gitea MCP or git clone), runs gitleaks or trufflehog against the full git history (including deleted files \u2014 they still exist in git history), and reports any detected secrets with file name, line number, and commit hash.\nThe important detail\n'I deleted the file' does not help if it was ever committed. The secret is in git history forever unless you purge it with git filter-repo. Hermes can walk you through the purge process if it finds historical secrets.\nPreventive measure\nAdd a pre-commit hook to your repos: install the gitleaks pre-commit hook. It scans every commit before it lands and refuses to commit if it detects a secret pattern. Hermes can set this up: 'Add gitleaks pre-commit hook to my homelab-stacks repo.'\nWeekly automated audit\nSchedule as a Hermes cron: every Sunday, run gitleaks on all four homelab repos and report any new findings. Catches credentials added during the week before they have been pushed to Gitea for long."
+            },
+            {
+                "type": "p",
+                "content": "Commit Message Convention\nSmall thing, high value. A consistent commit message format makes Hermes's weekly dev review ('what did I change this week?') much more useful:"
+            },
+            {
+                "type": "p",
+                "content": "Format\n[service] action: description \u2014 e.g., [immich] add: thumbnail regeneration cron | [proxmox] fix: network bridge config after update | [n8n] update: DOB scraper to use Open Data v2 API\nWhy it matters\nWhen Hermes queries git log for the weekly review, it can parse [service] tags and group changes by service area. 'Here is everything you changed in your media stack this week' becomes a useful report rather than a raw list of commit messages.\nEnforcing it\nAdd a commit-msg git hook that validates the format. Hermes can generate the hook: 'Create a git commit-msg hook that enforces [service] prefix format for my homelab repos.'"
+            }
+        ]
+    },
+    {
+        "id": "what-not-to-self-host",
+        "title": "What Not to Self-Host",
+        "elements": [
+            {
+                "type": "p",
+                "content": "Self-hosting everything is a tempting philosophy once you have the infrastructure for it. It is also wrong. There is a category of services where self-hosting costs more in time, reliability, and risk than it saves in money or privacy. Knowing which services to keep in the cloud on purpose is as important as knowing which ones to bring home."
+            },
+            {
+                "type": "p",
+                "content": "The Keep-in-Cloud List\nService\nWhy not to self-host\nWhat to use instead\nMonthly cost\nEmail (sending and receiving)\nMail server reputation is a months-long project to establish. A residential IP is almost certainly on spam blocklists before you even send your first email. SPF, DKIM, DMARC, PTR records, bounce handling, spam filtering \u2014 the operational burden is genuinely professional-grade. One misconfiguration and your family stops receiving email.\nFastmail ($3/mo per user) or Proton Mail ($4/mo). For transactional email (server alerts, app notifications), use Resend or SendGrid free tier.\n$3\u20138/month \u2014 worth every cent\nSMS / cellular notifications\nRequires a carrier account, phone number provisioning, and carrier-specific APIs. Self-hosted SMS is legally complicated (carrier ToS). Not feasible for a residential homelab.\nTwilio (pay-per-message, fractions of a cent) or just use ntfy/Telegram which are free and better.\n~$0 \u2014 just use Telegram\nCDN for public websites\nSelf-hosting a CDN requires servers in multiple geographic regions. If you are serving a public-facing website with global users, a residential connection cannot provide the latency or reliability of a real CDN edge network.\nCloudflare free tier \u2014 unlimited bandwidth, 200+ edge locations, DDoS protection, free. For anything going to the public internet, put it behind Cloudflare.\nFree\nPayment processing\nPCI DSS compliance for handling card data requires quarterly security scans, annual audits, and specific infrastructure controls. You cannot self-host a card processor from a home server.\nStripe \u2014 industry standard, excellent API, reasonable fees. Never attempt to process card data on your homelab.\n2.9% + $0.30 per transaction \u2014 unavoidable\nCertificate Authority\nRunning your own CA for public domains is not trusted by browsers. Let's Encrypt (via Certbot or Nginx Proxy Manager) is the right answer for internal and external certs.\nLet's Encrypt via Nginx Proxy Manager or Certbot \u2014 free, automated, globally trusted.\nFree\nPublic DDoS-resilient services\nA residential internet connection has no DDoS mitigation. A large enough attack (even a moderate one) will saturate your connection and take down your ISP's equipment management.\nAny service you expose publicly should be behind Pangolin or Cloudflare Tunnels. Your home IP should never be the endpoint that absorbs attacks.\nFree (Pangolin VPS ~$4/mo)\nAnything requiring 99.9%+ uptime\nYour home internet goes down. Your power goes down. Your UPS has finite runtime. NYC infrastructure is reliable but not carrier-grade. For any service where a 4-hour outage is unacceptable to real users (not family), self-hosting is the wrong choice.\nCloud hosting for critical services: Fly.io, Railway, Render \u2014 free tiers available. Keep your homelab as the backend; use cloud for the public-facing layer if uptime matters.\n$0\u201320/month depending on traffic\nApple iCloud features (Handoff, AirDrop, etc.)\nThese require Apple's private relay infrastructure. You can replace iCloud Photos (Immich) and iCloud Drive (Syncthing + Nextcloud) but not the protocol-level device integration features.\nKeep iCloud at the lowest paid tier ($0.99/month) for device ecosystem features. Replace storage with Immich and Syncthing.\n$0.99/month\nGoogle Maps / navigation\nSelf-hosted maps (OpenStreetMap + Nominatim + routing) exist and are excellent for static viewing. Real-time traffic, turn-by-turn navigation with live updates, and transit routing at NYC's complexity are genuinely difficult to replicate.\nGoogle Maps or Apple Maps. OpenStreetMap-based apps (OsmAnd, Organic Maps) for privacy-respecting navigation without real-time traffic.\nFree"
+            },
+            {
+                "type": "p",
+                "content": "The Nuanced Cases \u2014 Worth Evaluating\nService\nSelf-host if\u2026\nKeep in cloud if\u2026\nGitHub / GitLab\nYou have private repos with sensitive code, you want to own the CI infrastructure, or you want to avoid GitHub's TOS on certain projects.\nYou want public repo discoverability, GitHub Actions ecosystem, or you collaborate with people who cannot access your Gitea.\nVideo conferencing (Jitsi Meet)\nYou need private family video calls without Zoom data collection. Self-hosted Jitsi works well for small groups (2\u20138 people).\nYou regularly have calls with more than 8 people, or you need reliable mobile performance. Jitsi on residential hardware degrades under load.\nCloud storage (Dropbox/Google Drive)\nYou have replaced it with Syncthing + Immich + Nextcloud and everyone in the family uses the self-hosted version reliably.\nAnyone in the family relies on the seamless desktop client integration that Syncthing cannot replicate (real-time selective sync, shared public links with edit access).\nPassword manager (Bitwarden/1Password)\nVaultwarden with off-site backup and a tested restore procedure. You understand the risk: if the server dies and the backup is corrupt, your family loses all passwords simultaneously.\nIf any family member is not technical enough to understand the implications of the backup dependency, keep a cloud-hosted password manager.\nVPN (commercial)\nYou do not need a commercial VPN if you have Tailscale + Pangolin \u2014 you have built your own equivalent or better.\nIf you need a VPN specifically for content geo-unlocking (Netflix regions, etc.) \u2014 residential VPN from a different country. Mullvad or ProtonVPN for this specific use case."
+            },
+            {
+                "type": "p",
+                "content": "THE HONEST SUMMARY: Self-hosting is best for: storage, media, notes, productivity tools, home automation, and any internal tool where you are the user. Self-hosting is wrong for: anything customer-facing requiring real uptime SLAs, email infrastructure, payment processing, and anything where a 4-hour outage affects people who did not choose to depend on your homelab."
+            }
+        ]
+    },
+    {
+        "id": "language-learning-with-your-homelab",
+        "title": "Language Learning with Your Homelab",
+        "elements": [
+            {
+                "type": "p",
+                "content": "The homelab infrastructure you are building is unexpectedly good for language learning \u2014 specifically because of three things already in this plan: Whisper for speech transcription, the subtitle pipeline for Jellyfin, and Hermes with persistent memory and a dedicated profile. This section describes how to use them together as a language learning system that adapts to you and improves with use."
+            },
+            {
+                "type": "p",
+                "content": "Why This Is Different From Apps\nDuolingo and similar apps give you: gamified repetition, fixed curriculum, generic feedback. What they cannot give you is a conversation partner who: remembers every error you made last Tuesday, knows your specific weak points from your specific history, generates reading material about topics you already care about (your homelab, NYC, your family context), and never judges or gets impatient. Hermes does all of these. The infrastructure cost is the OpenRouter API spend, which is under $2/month for a daily 20-minute session at Claude Haiku rates."
+            },
+            {
+                "type": "p",
+                "content": "The Hermes Language Partner (Mandarin Focus)\nUse the language learning SOUL.md profile from the Hermes deep section. Here is how sessions actually work:"
+            },
+            {
+                "type": "p",
+                "content": "Session type\nHow to start\nWhat Hermes does\nBest frequency\nFree conversation\n'\u5f00\u59cb\u5bf9\u8bdd\u7ec3\u4e60' (Start conversation practice)\nPicks a topic from your life (the homelab, NYC news, family), conducts a conversation in Mandarin, corrects errors inline with explanation, tracks new errors in memory\nDaily, 10\u201320 minutes\nGrammar focus\n'\u6211\u60f3\u7ec3\u4e60\u628a\u5b57\u53e5' (I want to practice the ba-construction)\nExplains the pattern, gives you 5 example sentences to complete, corrects your answers, provides 3 original sentences for you to translate\n2\u20133x per week, 15 minutes\nVocabulary review\n'\u590d\u4e60\u4e0a\u5468\u7684\u8bcd\u6c47' (Review last week's vocabulary)\nLoads vocabulary from memory (words flagged in past sessions), tests you in context sentences rather than flashcard format, retires words you get right 3 times in a row\nWeekly, 10 minutes\nReading practice\nPaste a Chinese article or have Hermes fetch one\nHermes reads it, removes words above your level, gives you the simplified version with difficult words in context, asks comprehension questions\n2\u20133x per week, 20 minutes\nTone drill\n'\u58f0\u8c03\u7ec3\u4e60' (Tone practice)\nHermes gives you 10 words in pinyin only, you write the tones (1/2/3/4), Hermes corrects and explains. Low tech but effective.\nWeekly, 10 minutes"
+            },
+            {
+                "type": "p",
+                "content": "Speaking Practice with Whisper\nThe Whisper pipeline already in the plan transcribes audio. With a USB microphone (already in the accessories list), you can create a speaking practice loop entirely on your homelab:"
+            },
+            {
+                "type": "p",
+                "content": "How it works\nRecord yourself speaking Mandarin (any topic) \u2192 Whisper transcribes the audio to text \u2192 send the transcript to Hermes with the prompt 'This is what I said in Mandarin. Identify any tone marking errors (context), grammar mistakes, and unnatural phrasing. Show me the corrected version.'\nWhat Whisper gets right\nWhisper is trained on Mandarin and handles tones surprisingly well in transcription. It will often transcribe the wrong character when you get a tone wrong \u2014 which is actually useful feedback. If you say ma with the wrong tone and Whisper writes a completely different character, that tells you something about how you are being heard.\nLimitations\nWhisper cannot tell you your tones are wrong if the wrong tone still produces a valid word in context. For tone correction, pairing Whisper transcription with a Hermes review of what you meant to say vs what was transcribed is more useful than Whisper alone.\nSetup for Stage 1 (CPU-only)\nWhisper tiny or Whisper base runs on the Mini PC CPU. Processing a 2-minute recording takes 30\u201360 seconds \u2014 slow but usable for post-session review, not real-time. For real-time, use Stage 4 with GPU.\nSetup for Stage 4 (GPU)\nWhisper large-v3 via Faster-Whisper on the tower GPU processes 2 minutes of audio in under 5 seconds. Near-real-time feedback is possible."
+            },
+            {
+                "type": "p",
+                "content": "Jellyfin Subtitle Flip: Immersive Listening\nYour Jellyfin library already contains Chinese content (for parents) and English content with Chinese subtitles (from the Bazarr pipeline). The subtitle configuration is the most underused language learning tool in the entire plan:"
+            },
+            {
+                "type": "p",
+                "content": "Method\nHow to configure in Jellyfin\nLearning mode\nLevel appropriate for\nChinese audio + English subtitles\nSelect Chinese audio track, English subtitle track. Available automatically for Chinese content in your library.\nComprehensible input \u2014 hear natural Chinese while reading meaning in English. Brain maps sounds to meaning without translation stress.\nBeginner to intermediate \u2014 listening to Chinese you cannot fully understand yet\nChinese audio + Chinese subtitles\nSelect Chinese audio and Chinese subtitle track. Generate Chinese subs via Bazarr if not present.\nListening + reading simultaneously \u2014 reinforces character recognition while hearing pronunciation\nIntermediate \u2014 you can read characters but need audio reinforcement\nEnglish audio + Chinese subtitles\nSelect English audio, Chinese subtitle track generated by your translation pipeline.\nReading Chinese at natural speed \u2014 the audio tells you the meaning if you get stuck on a character\nIntermediate to advanced \u2014 tests reading fluency under time pressure\nEnglish audio + no subtitles, then add Chinese subs on rewatch\nWatch once for comprehension, rewatch key scenes with Chinese subtitles\nPost-comprehension analysis \u2014 understand the meaning first, then see how to express it in Chinese\nAdvanced \u2014 you already know the content well enough to focus on the Chinese expression"
+            },
+            {
+                "type": "p",
+                "content": "Custom Reading Material Generated From What You Care About\nThe most effective reading material is content you are already interested in. Generic language learning apps give you generic content. Hermes generates reading material about your actual life:"
+            },
+            {
+                "type": "list",
+                "items": [
+                    "'Write me a short paragraph in Mandarin about setting up a ZFS storage pool. Use vocabulary appropriate for HSK 3 level. Include a glossary of technical terms with pinyin and English translation at the bottom.'",
+                    "'Translate this section of my HomeAssistant documentation into Mandarin at an intermediate level. Simplify any technical concepts that would be unfamiliar to someone who does not know English tech terminology.'",
+                    "'Generate a 200-character story about a family living in a NYC apartment building. Use past tense throughout, which I am practicing. Include 5 new vocabulary words with context clues.'",
+                    "'Create a mock conversation in Mandarin between a landlord and tenant about a maintenance request. Use formal register throughout. This is for reading practice \u2014 make it realistic and natural.'"
+                ]
+            },
+            {
+                "type": "p",
+                "content": "Vocabulary: Anki Sync Server (Already in Plan) + Hermes Integration\nAnki sync server\nanki-sync-server Docker container syncs your Anki decks across devices. Your cards are on your server, not AnkiWeb's servers. Existing functionality already mentioned in the plan.\nHermes card generation\n'Generate 10 Anki cards for the vocabulary I got wrong in today's session.' Hermes outputs in Anki's import format (tab-separated): front | back | example sentence | tags. Import directly.\nAuto-deck from Jellyfin subtitles\nn8n workflow: extract Chinese subtitle files from a watched episode \u2192 run through a frequency analysis script \u2192 identify words not yet in your Anki deck \u2192 generate cards for the top 10 unknown words. Watching a Chinese drama automatically builds your vocabulary deck.\nSentence mining\nThe most effective Anki method for language learning. Instead of word-only cards: one card = one sentence from a real source (subtitle, article, Hermes conversation) where you encountered an unknown word. Context is part of the card."
+            },
+            {
+                "type": "p",
+                "content": "Tracking Progress Over Time\n    \u2022 Hermes memory stores your error history across sessions. Every month: 'Give me a summary of my Mandarin progress this month \u2014 errors I've stopped making, patterns I'm still struggling with, and one specific focus for next month.'\n    \u2022 SilverBullet language learning note: one note per month with HSK-approximate level, active weak points, vocabulary count reached, and a sample of a Mandarin paragraph you wrote that month. Reading it back in 6 months is genuinely motivating.\n    \u2022 The Anki deck size is a concrete metric. When your deck hits 1,000 mature cards (seen and remembered correctly multiple times), you have real intermediate vocabulary. Hermes can report your mature card count weekly."
+            }
+        ]
+    }
+
 ];
-
-
